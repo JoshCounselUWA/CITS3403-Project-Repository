@@ -10,8 +10,8 @@
 
 .title {
     position: relative;
-    left: 80px;
-    top: 10px;
+    left: 90px;
+    top: 12px;
     color: white;
     font-family: Verdana, Geneva, Tahoma, sans-serif;
     font-size: 20px;
@@ -36,11 +36,18 @@ button {
     border: none;
     z-index: 2;
     position: absolute;
-    top: 100px;
     left: 25px;
 }
 
 button:hover {
     background-color: rgb(6, 0, 122);
     cursor: pointer;
+}
+
+.logo {
+    width: 100px;
+    height: auto;
+    position: absolute;
+    left: 0px;
+    top: -12px;
 }
