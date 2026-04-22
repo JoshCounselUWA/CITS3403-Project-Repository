@@ -19,11 +19,26 @@ This page will have different content depending on who logs in, eg: different "u
 
 </head>
 <body>
-    <div class="topbar"><img src="../Static/DICE.png" alt="Digital Inventory Control Environment" class="logo"><h1 class="title">Dashboard</h1></div>
-    <div class="sidebar"></div>
+    <!-- Header -->
+    <div class="fixed top-0 right-0 left-0 z-40 flex h-16 items-center gap-4 bg-sky-950 p-3 text-white">
+        <img src="../Static/DICE.png" alt="Digital Inventory Control Environment" class="logo h-20">
+        <h1 class="font-bold">Dashboard</h1>
+    </div>
+    
+    <!-- Sidebar -->
+    <div class="fixed top-16 bottom-0 left-0 flex w-64 flex-col gap-4 bg-slate-900 p-6 text-white">
+        <button onclick="window.location.href='dashboard'" class="w-50 cursor-pointer rounded-lg bg-sky-900 py-2 hover:bg-blue-800">Dashboard</button>
+        <button onclick="window.location.href='requests'" class="w-50 cursor-pointer rounded-lg bg-sky-900 py-2 hover:bg-blue-800" style="top: 180px;">Requests</button>
+        <button onclick="window.location.href='inventory'" class="w-50 cursor-pointer rounded-lg bg-sky-900 py-2 hover:bg-blue-800" style="top: 260px;">Inventory</button>
+    </div>
+    
+    <!-- Main Content -->
+     <div class="fixed top-16 bottom-0 left-64 right-0 flex justify-center items-center">
+        <div>
+                <h2 class="text-2xl font-bold p-2 text-white">Welcome to your Dashboard</h2>
+                <p class="text-white">Here you can view your current loans and requests.</p>
+        </div>
+     </div>
 
-    <button onclick="window.location.href='dashboard'" class="w-50 cursor-pointer rounded-lg bg-sky-900 py-2 hover:bg-blue-800">Dashboard</button>
-    <button onclick="window.location.href='requests'" class="w-50 cursor-pointer rounded-lg bg-sky-900 py-2 hover:bg-blue-800" style="top: 180px;">Requests</button>
-    <button onclick="window.location.href='inventory'" class="w-50 cursor-pointer rounded-lg bg-sky-900 py-2 hover:bg-blue-800" style="top: 260px;">Inventory</button>
 </body>
 </html>
