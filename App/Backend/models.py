@@ -78,16 +78,16 @@ class ItemList(Base):
     def __repr__(self):
         return f"<ItemList(itemID={self.itemID},itemName={self.itemName})>"
 
-class Appsettings(Base):
-    __tablename__ = 'Appsettings'
+#class Appsettings(Base):
+    #__tablename__ = 'Appsettings'
 
     #def to_json(self):
 
     #def __repr__(self):
 
-class UserSettings(Base):
-    __tablename__ = 'usersettings'
-    userID = Column(Integer, primary_key=True)
+#class UserSettings(Base):
+   # __tablename__ = 'usersettings'
+    #userID = Column(Integer, primary_key=True)
 
     #def to_json(self):
 
