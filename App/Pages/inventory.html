@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
+<headmeta charset="UTF-8"><head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventory</title>
 
@@ -19,11 +18,19 @@
             overflow: hidden;
         }
 
+        /* ✅ pointer cursor everywhere (already agreed) */
+        button {
+            cursor: pointer;
+        }
+
         .add-item-btn {
             position: fixed;
             top: 90px;
             right: 20px;
             z-index: 50;
+            /* ✅ match Requests exactly */
+            padding-left: 28px;
+            padding-right: 28px;
         }
 
         .table-container {
@@ -48,14 +55,12 @@
             text-align: left;
         }
 
-        
         th.actions,
         td.actions {
             white-space: nowrap;
             width: 1%;
         }
 
-        
         .modal-overlay {
             position: fixed;
             inset: 0;
@@ -99,7 +104,6 @@
             margin-top: 10px;
         }
 
-        
         .modal-actions button,
         table td.actions button {
             padding-left: 16px;
@@ -107,118 +111,119 @@
         }
     </style>
 </head>
+
 <body>
 
-    <!-- Header -->
-    <div class="fixed top-0 left-0 right-0 z-40 flex h-16 items-center gap-4 bg-sky-950 p-3 text-white">
-        <img src="../Static/DICE.png" alt="Digital Inventory Control Environment" class="logo h-20">
-        <h1 class="font-bold">Inventory</h1>
-    </div>
+<!-- Header -->
+<div class="fixed top-0 left-0 right-0 z-40 flex h-16 items-center gap-4 bg-sky-950 p-3 text-white">
+    <img src="../Static/DICE.png" alt="Digital Inventory Control Environment" class="logo h-20">
+    <h1 class="font-bold">Inventory</h1>
+</div>
 
-    <!-- Sidebar -->
-    <div class="fixed top-16 bottom-0 left-0 w-64 flex flex-col gap-4 bg-slate-900 p-6 text-white">
-        <button onclick="window.location.href='dashboard'" class="w-50 cursor-pointer rounded-lg bg-sky-900 py-2 hover:bg-blue-800">Dashboard</button>
-        <button onclick="window.location.href='requests'"  class="w-50 cursor-pointer rounded-lg bg-sky-900 py-2 hover:bg-blue-800">Requests</button>
-        <button onclick="window.location.href='inventory'" class="w-50 cursor-pointer rounded-lg bg-sky-900 py-2 hover:bg-blue-800">Inventory</button>
-    </div>
+<!-- Sidebar -->
+<div class="fixed top-16 bottom-0 left-0 w-64 flex flex-col gap-4 bg-slate-900 p-6 text-white">
+    <button onclick="window.location.href='dashboard'" class="w-50 cursor-pointer rounded-lg bg-sky-900 py-2 hover:bg-blue-800">Dashboard</button>
+    <button onclick="window.location.href='requests'"  class="w-50 cursor-pointer rounded-lg bg-sky-900 py-2 hover:bg-blue-800">Requests</button>
+    <button onclick="window.location.href='inventory'" class="w-50 cursor-pointer rounded-lg bg-sky-900 py-2 hover:bg-blue-800">Inventory</button>
+</div>
 
-    <!-- Add Item Button -->
-    <button onclick="openAddModal()" class="add-item-btn w-50 cursor-pointer rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
-        Add Item
-    </button>
+<!-- Add Item Button (✅ now matches New Request width) -->
+<button onclick="openAddModal()" class="add-item-btn rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
+    Add Item
+</button>
 
-    <!-- Table -->
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>Item</th>
-                    <th>Category</th>
-                    <th>Quantity</th>
-                    <th>Status</th>
-                    <th>Photo</th>
-                    <th class="actions">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in items %}
-                <tr>
-                    <td>{{ item.itemName }}</td>
-                    <td>{{ item.itemDescription }}</td>
-                    <td>{{ item.itemquantity }}</td>
-                    <td>{% if item.itemquantity > 0 %}In Stock{% else %}Out of Stock{% endif %}</td>
-                    <td>
-                        {% if item.itemphoto %}
-                            <img src="{{ item.itemphoto }}" alt="{{ item.itemName }}" class="h-16 w-16 object-cover rounded">
-                        {% else %}
-                            <span>No photo</span>
-                        {% endif %}
-                    </td>
-                    <td class="actions">
-                        <button
-                            onclick="openUpdateModal('{{ item.itemID }}','{{ item.itemName|escape }}','{{ item.itemDescription|escape }}','{{ item.itemquantity }}','{{ item.itemphoto|escape }}')"
-                            class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
-                            Update
+<!-- Table -->
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>Item</th>
+                <th>Category</th>
+                <th>Quantity</th>
+                <th>Status</th>
+                <th>Photo</th>
+                <th class="actions">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td>{{ item.itemName }}</td>
+                <td>{{ item.itemDescription }}</td>
+                <td>{{ item.itemquantity }}</td>
+                <td>{% if item.itemquantity > 0 %}In Stock{% else %}Out of Stock{% endif %}</td>
+                <td>
+                    {% if item.itemphoto %}
+                        <img src="{{ item.itemphoto }}" alt="{{ item.itemName }}" class="h-16 w-16 object-cover rounded">
+                    {% else %}
+                        <span>No photo</span>
+                    {% endif %}
+                </td>
+                <td class="actions">
+                    <button
+                        onclick="openUpdateModal('{{ item.itemID }}','{{ item.itemName|escape }}','{{ item.itemDescription|escape }}','{{ item.itemquantity }}','{{ item.itemphoto|escape }}')"
+                        class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
+                        Update
+                    </button>
+                    <a href="/inventory/delete/{{ item.itemID }}">
+                        <button class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
+                            Delete
                         </button>
-                        <a href="/inventory/delete/{{ item.itemID }}">
-                            <button class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
-                                Delete
-                            </button>
-                        </a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 
-    <!-- Modal -->
-    <div class="modal-overlay" id="modal">
-        <form id="itemForm" class="modal" method="POST">
-            <h2 id="modalTitle">Add Item</h2>
+<!-- Modal -->
+<div class="modal-overlay" id="modal">
+    <form id="itemForm" class="modal" method="POST">
+        <h2 id="modalTitle">Add Item</h2>
 
-            <input type="hidden" name="itemID" id="itemID">
-            <input name="itemName" id="itemName" placeholder="Item Name" required>
-            <input name="itemDescription" id="itemDescription" placeholder="Description">
-            <input name="itemquantity" id="itemquantity" type="number" placeholder="Quantity" required>
-            <input name="itemphoto" id="itemphoto" placeholder="Photo URL">
+        <input type="hidden" name="itemID" id="itemID">
+        <input name="itemName" id="itemName" placeholder="Item Name" required>
+        <input name="itemDescription" id="itemDescription" placeholder="Description">
+        <input name="itemquantity" id="itemquantity" type="number" placeholder="Quantity" required>
+        <input name="itemphoto" id="itemphoto" placeholder="Photo URL">
 
-            <div class="modal-actions">
-                <button type="button" onclick="closeModal()" class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">Cancel</button>
-                <button type="submit" id="modalSubmitBtn" class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">Add Item</button>
-            </div>
-        </form>
-    </div>
+        <div class="modal-actions">
+            <button type="button" onclick="closeModal()" class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">Cancel</button>
+            <button type="submit" id="modalSubmitBtn" class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">Add Item</button>
+        </div>
+    </form>
+</div>
 
-    <script>
-        function openAddModal() {
-            document.getElementById("modalTitle").innerText = "Add Item";
-            document.getElementById("modalSubmitBtn").innerText = "Add Item";
-            document.getElementById("itemForm").action = "/inventory/add";
-            document.getElementById("itemID").value = "";
-            document.getElementById("itemName").value = "";
-            document.getElementById("itemDescription").value = "";
-            document.getElementById("itemquantity").value = "";
-            document.getElementById("itemphoto").value = "";
-            document.getElementById("modal").style.display = "flex";
-        }
+<script>
+function openAddModal() {
+    document.getElementById("modalTitle").innerText = "Add Item";
+    document.getElementById("modalSubmitBtn").innerText = "Add Item";
+    document.getElementById("itemForm").action = "/inventory/add";
+    document.getElementById("itemID").value = "";
+    document.getElementById("itemName").value = "";
+    document.getElementById("itemDescription").value = "";
+    document.getElementById("itemquantity").value = "";
+    document.getElementById("itemphoto").value = "";
+    document.getElementById("modal").style.display = "flex";
+}
 
-        function openUpdateModal(id, name, description, quantity, photo) {
-            document.getElementById("modalTitle").innerText = "Update Item";
-            document.getElementById("modalSubmitBtn").innerText = "Update";
-            document.getElementById("itemForm").action = "/inventory/update";
-            document.getElementById("itemID").value = id;
-            document.getElementById("itemName").value = name;
-            document.getElementById("itemDescription").value = description;
-            document.getElementById("itemquantity").value = quantity;
-            document.getElementById("itemphoto").value = photo;
-            document.getElementById("modal").style.display = "flex";
-        }
+function openUpdateModal(id, name, description, quantity, photo) {
+    document.getElementById("modalTitle").innerText = "Update Item";
+    document.getElementById("modalSubmitBtn").innerText = "Update";
+    document.getElementById("itemForm").action = "/inventory/update";
+    document.getElementById("itemID").value = id;
+    document.getElementById("itemName").value = name;
+    document.getElementById("itemDescription").value = description;
+    document.getElementById("itemquantity").value = quantity;
+    document.getElementById("itemphoto").value = photo;
+    document.getElementById("modal").style.display = "flex";
+}
 
-        function closeModal() {
-            document.getElementById("modal").style.display = "none";
-        }
-    </script>
+function closeModal() {
+    document.getElementById("modal").style.display = "none";
+}
+</script>
 
 </body>
 </html>

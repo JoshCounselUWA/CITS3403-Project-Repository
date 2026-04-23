@@ -1,11 +1,3 @@
-<!--
-
-This page will be for requesting loans and will be seen by the "user" and "departmentHead" groups...
-
-Business admins won't need to request loans...
-
--->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -17,13 +9,290 @@ Business admins won't need to request loans...
     <script src="../Static/script.js" defer></script>
     <link rel="icon" type="image/x-icon" href="../Static/DICE_favicon.png">
 
-</head>
-<body>
-    <div class="fixed top-0 right-0 left-0 z-40 flex h-16 items-center gap-4 bg-sky-950 p-3 text-white"><img src="../Static/DICE.png" alt="Digital Inventory Control Environment" class="logo h-20"><h1 class="font-bold">Requests</h1></div>
-    <div class="fixed top-16 bottom-0 left-0 flex w-64 flex-col gap-4 bg-slate-900 p-6 text-white">
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
 
-    <button onclick="window.location.href='dashboard'" class="w-50 cursor-pointer rounded-lg bg-sky-900 py-2 hover:bg-blue-800">Dashboard</button>
-    <button onclick="window.location.href='requests'" class="w-50 cursor-pointer rounded-lg bg-sky-900 py-2 hover:bg-blue-800" style="top: 180px;">Requests</button>
-    <button onclick="window.location.href='inventory'" class="w-50 cursor-pointer rounded-lg bg-sky-900 py-2 hover:bg-blue-800" style="top: 260px;">Inventory</button>
+        body {
+            overflow: hidden;
+        }
+
+        /* ✅ cursor for ALL buttons */
+        button {
+            cursor: pointer;
+        }
+
+        .add-request-btn {
+            position: fixed;
+            top: 90px;
+            right: 20px;
+            z-index: 50;
+            padding-left: 28px;
+            padding-right: 28px;
+        }
+
+        .table-container {
+            position: absolute;
+            top: 140px;
+            left: 300px;
+            right: 20px;
+            bottom: 20px;
+            overflow: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            color: white;
+            border: 1px solid white;
+        }
+
+        th, td {
+            border: 1px solid white;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th.actions,
+        td.actions {
+            white-space: nowrap;
+            width: 1%;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .modal {
+            background: #050B14;
+            padding: 20px;
+            width: 400px;
+            border-radius: 8px;
+            color: white;
+        }
+
+        .modal.action-modal {
+            width: 260px;
+        }
+
+        .modal h2 {
+            margin-bottom: 14px;
+        }
+
+        .modal input,
+        .modal textarea {
+            width: 100%;
+            padding: 6px;
+            margin-bottom: 10px;
+            background: transparent;
+            color: white;
+            border: 1px solid rgba(255,255,255,0.35);
+            border-radius: 4px;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 10px;
+        }
+
+        .modal-actions.space-between {
+            justify-content: space-between;
+        }
+
+        .modal-actions.stacked {
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .modal-actions button,
+        table td.actions button {
+            padding-left: 28px;
+            padding-right: 28px;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- Header -->
+<div class="fixed top-0 left-0 right-0 z-40 flex h-16 items-center gap-4 bg-sky-950 p-3 text-white">
+    <img src="../Static/DICE.png" class="logo h-20">
+    <h1 class="font-bold">Requests</h1>
+</div>
+
+<!-- Sidebar -->
+<div class="fixed top-16 bottom-0 left-0 w-64 flex flex-col gap-4 bg-slate-900 p-6 text-white">
+    <button onclick="window.location.href='dashboard'"
+        class="w-50 cursor-pointer rounded-lg bg-sky-900 py-2 hover:bg-blue-800">
+        Dashboard
+    </button>
+    <button onclick="window.location.href='requests'"
+        class="w-50 cursor-pointer rounded-lg bg-sky-900 py-2 hover:bg-blue-800">
+        Requests
+    </button>
+    <button onclick="window.location.href='inventory'"
+        class="w-50 cursor-pointer rounded-lg bg-sky-900 py-2 hover:bg-blue-800">
+        Inventory
+    </button>
+</div>
+
+<!-- New Request -->
+<button onclick="openAddModal()" class="add-request-btn rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
+    New Request
+</button>
+
+<!-- Requests Table -->
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th class="actions">Action</th>
+                <th class="actions">Details</th>
+                <th>Title</th>
+                <th>Justification</th>
+                <th>Status</th>
+                <th>Requester</th>
+                <th class="actions">Manage</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in requests %}
+            <tr>
+                <td class="actions">
+                    <button onclick="openActionModal('{{ r.requestID }}')" class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">Action</button>
+                </td>
+                <td class="actions">
+                    <button onclick="openDetailsModal('{{ r.requestID }}')" class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">Details</button>
+                </td>
+                <td>{{ r.requestTitle }}</td>
+                <td>{{ r.requestJustification }}</td>
+                <td>{{ r.status.value }}</td>
+                <td>{{ r.requesterID }}</td>
+                <td class="actions">
+                    <button onclick="openUpdateModal('{{ r.requestID }}','{{ r.requestTitle|escape }}','{{ r.requestJustification|escape }}')" class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">Update</button>
+                    <a href="/requests/delete/{{ r.requestID }}">
+                        <button class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">Delete</button>
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- ADD / UPDATE MODAL -->
+<div class="modal-overlay" id="modal">
+    <form id="requestForm" class="modal" method="POST">
+        <h2 id="modalTitle">New Request</h2>
+
+        <input type="hidden" name="requestID" id="requestID">
+        <input name="requestTitle" id="requestTitle" placeholder="Request Title" required>
+        <textarea name="requestJustification" id="requestJustification" placeholder="Justification"></textarea>
+        <input name="requesterID" placeholder="Requester ID" required>
+
+        <div class="modal-actions space-between">
+            <button type="button" onclick="closeModal()" class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">Cancel</button>
+            <button type="submit" id="modalSubmitBtn" class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">Submit</button>
+        </div>
+    </form>
+</div>
+
+<!-- ACTION MODAL -->
+<div class="modal-overlay" id="actionModal">
+    <div class="modal action-modal">
+        <h2>Request Action</h2>
+
+        <div class="modal-actions stacked">
+            <a id="approveLink">
+                <button class="rounded-lg py-2 text-white"
+                    style="background:#16a34a; min-width:140px; text-align:center;"
+                    onmouseover="this.style.filter='brightness(1.1)'"
+                    onmouseout="this.style.filter='none'">
+                    Approve
+                </button>
+            </a>
+            <a id="declineLink">
+                <button class="rounded-lg py-2 text-white"
+                    style="background:#dc2626; min-width:140px; text-align:center;"
+                    onmouseover="this.style.filter='brightness(1.1)'"
+                    onmouseout="this.style.filter='none'">
+                    Decline
+                </button>
+            </a>
+        </div>
+
+        <div class="modal-actions">
+            <button onclick="closeActionModal()" class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- DETAILS MODAL -->
+<div class="modal-overlay" id="detailsModal">
+    <div class="modal">
+        <h2>Request Details</h2>
+        <div id="detailsContent"></div>
+        <div class="modal-actions">
+            <button onclick="closeDetailsModal()" class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">Close</button>
+        </div>
+    </div>
+</div>
+
+<script>
+function openAddModal() {
+    document.getElementById("modalTitle").innerText = "New Request";
+    document.getElementById("modalSubmitBtn").innerText = "Submit";
+    document.getElementById("requestForm").action = "/requests/add";
+    document.getElementById("requestID").value = "";
+    document.getElementById("requestTitle").value = "";
+    document.getElementById("requestJustification").value = "";
+    document.getElementById("modal").style.display = "flex";
+}
+
+function openUpdateModal(id, title, justification) {
+    document.getElementById("modalTitle").innerText = "Update Request";
+    document.getElementById("modalSubmitBtn").innerText = "Update";
+    document.getElementById("requestForm").action = "/requests/update";
+    document.getElementById("requestID").value = id;
+    document.getElementById("requestTitle").value = title;
+    document.getElementById("requestJustification").value = justification;
+    document.getElementById("modal").style.display = "flex";
+}
+
+function closeModal() {
+    document.getElementById("modal").style.display = "none";
+}
+
+function openActionModal(id) {
+    document.getElementById("approveLink").href = "/requests/approve/" + id;
+    document.getElementById("declineLink").href = "/requests/decline/" + id;
+    document.getElementById("actionModal").style.display = "flex";
+}
+
+function closeActionModal() {
+    document.getElementById("actionModal").style.display = "none";
+}
+
+function openDetailsModal(id) {
+    document.getElementById("detailsContent").innerHTML =
+        "<p>Items for request <strong>" + id + "</strong> will appear here.</p>";
+    document.getElementById("detailsModal").style.display = "flex";
+}
+
+function closeDetailsModal() {
+    document.getElementById("detailsModal").style.display = "none";
+}
+</script>
+
 </body>
 </html>
