@@ -1,185 +1,215 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Requests</title>
 
-    <link rel="stylesheet" href="../Static/output.css">
-    <script src="../Static/script.js" defer></script>
-    <link rel="icon" type="image/x-icon" href="../Static/DICE_favicon.png">
+<link rel="stylesheet" href="../Static/output.css">
+<script src="../Static/script.js" defer></script>
+<link rel="icon" type="image/x-icon" href="../Static/DICE_favicon.png">
 
-    <style>
-        html, body {
-            height: 100%;
-            margin: 0;
-        }
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+    }
 
-        body {
-            overflow: hidden;
-        }
+    body {
+        overflow: hidden;
+        background: #020617;
+    }
 
-        /* ✅ cursor for ALL buttons */
-        button {
-            cursor: pointer;
-        }
+    button {
+        cursor: pointer;
+    }
 
-        .add-request-btn {
-            position: fixed;
-            top: 90px;
-            right: 20px;
-            z-index: 50;
-            padding-left: 28px;
-            padding-right: 28px;
-        }
+    .add-request-btn {
+        position: fixed;
+        top: 90px;
+        right: 20px;
+        z-index: 50;
+        padding-left: 28px;
+        padding-right: 28px;
+    }
 
-        .table-container {
-            position: absolute;
-            top: 140px;
-            left: 300px;
-            right: 20px;
-            bottom: 20px;
-            overflow: auto;
-        }
+    .table-container {
+        position: absolute;
+        top: 140px;
+        left: 300px;
+        right: 20px;
+        bottom: 20px;
+        overflow: auto;
+    }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            color: white;
-            border: 1px solid white;
-        }
+    table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        background: #020617;
+        border-radius: 12px;
+        overflow: hidden;
+    }
 
-        th, td {
-            border: 1px solid white;
-            padding: 8px;
-            text-align: left;
-        }
+    thead {
+        background: #0c4a6e;
+    }
 
-        th.actions,
-        td.actions {
-            white-space: nowrap;
-            width: 1%;
-        }
+    th {
+        padding: 12px;
+        text-align: left;
+        font-weight: 600;
+        color: white;
+        user-select: none;
+    }
 
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.6);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 100;
-        }
+    th.sortable {
+        cursor: pointer;
+    }
 
-        .modal {
-            background: #050B14;
-            padding: 20px;
-            width: 400px;
-            border-radius: 8px;
-            color: white;
-        }
+    th span.arrow {
+        margin-left: 6px;
+        font-size: 0.8rem;
+        opacity: 0.7;
+    }
 
-        .modal.action-modal {
-            width: 260px;
-        }
+    td {
+        padding: 12px;
+        border-top: 1px solid rgba(255,255,255,0.08);
+        color: white;
+    }
 
-        .modal h2 {
-            margin-bottom: 14px;
-        }
+    tbody tr:nth-child(even) {
+        background: rgba(255,255,255,0.02);
+    }
 
-        .modal input,
-        .modal textarea {
-            width: 100%;
-            padding: 6px;
-            margin-bottom: 10px;
-            background: transparent;
-            color: white;
-            border: 1px solid rgba(255,255,255,0.35);
-            border-radius: 4px;
-        }
+    tbody tr:hover {
+        background: rgba(56,189,248,0.1);
+    }
 
-        .modal-actions {
-            display: flex;
-            justify-content: flex-end;
-            margin-top: 10px;
-        }
+    th.actions,
+    td.actions {
+        white-space: nowrap;
+        width: 1%;
+        cursor: default;
+    }
 
-        .modal-actions.space-between {
-            justify-content: space-between;
-        }
+    table button {
+        font-size: 0.9rem;
+        padding-top: 6px;
+        padding-bottom: 6px;
+    }
 
-        .modal-actions.stacked {
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-        }
+    /* MODAL */
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(2, 6, 23, 0.75);
+        backdrop-filter: blur(4px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+    }
 
-        .modal-actions button,
-        table td.actions button {
-            padding-left: 28px;
-            padding-right: 28px;
-        }
-    </style>
+    .modal {
+        background: #020617;
+        padding: 20px;
+        width: 400px;
+        border-radius: 12px;
+        color: white;
+        border: 1px solid rgba(255,255,255,0.08);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    }
+
+    .modal h2 {
+        margin-bottom: 14px;
+    }
+
+    .modal input,
+    .modal textarea {
+        width: 100%;
+        padding: 6px;
+        margin-bottom: 10px;
+        background: rgba(255,255,255,0.02);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 6px;
+    }
+
+    .modal input:focus,
+    .modal textarea:focus {
+        outline: none;
+        border-color: #38bdf8;
+        background: rgba(56,189,248,0.05);
+    }
+
+    .modal-actions {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 10px;
+    }
+
+    .modal-actions button,
+    table td.actions button {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+</style>
+
 </head>
 
 <body>
 
-<!-- Header -->
 <div class="fixed top-0 left-0 right-0 z-40 flex h-16 items-center gap-4 bg-sky-950 p-3 text-white">
     <img src="../Static/DICE.png" class="logo h-20">
     <h1 class="font-bold">Requests</h1>
 </div>
 
-<!-- Sidebar -->
 <div class="fixed top-16 bottom-0 left-0 w-64 flex flex-col gap-4 bg-slate-900 p-6 text-white">
-    <button onclick="window.location.href='dashboard'"
-        class="w-50 cursor-pointer rounded-lg bg-sky-900 py-2 hover:bg-blue-800">
-        Dashboard
-    </button>
-    <button onclick="window.location.href='requests'"
-        class="w-50 cursor-pointer rounded-lg bg-sky-900 py-2 hover:bg-blue-800">
-        Requests
-    </button>
-    <button onclick="window.location.href='inventory'"
-        class="w-50 cursor-pointer rounded-lg bg-sky-900 py-2 hover:bg-blue-800">
-        Inventory
-    </button>
+    <button onclick="window.location.href='dashboard'" class="w-50 rounded-lg bg-sky-900 py-2 hover:bg-blue-800">Dashboard</button>
+    <button onclick="window.location.href='requests'" class="w-50 rounded-lg bg-sky-900 py-2 hover:bg-blue-800">Requests</button>
+    <button onclick="window.location.href='inventory'" class="w-50 rounded-lg bg-sky-900 py-2 hover:bg-blue-800">Inventory</button>
 </div>
 
-<!-- New Request -->
 <button onclick="openAddModal()" class="add-request-btn rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
     New Request
 </button>
 
-<!-- Requests Table -->
 <div class="table-container">
-    <table>
+    <table id="requestsTable">
         <thead>
             <tr>
                 <th class="actions">Action</th>
                 <th class="actions">Details</th>
-                <th>Title</th>
-                <th>Justification</th>
-                <th>Status</th>
-                <th>Requester</th>
+                <th class="sortable" onclick="sortTable(2)">Title <span class="arrow">↕</span></th>
+                <th class="sortable" onclick="sortTable(3)">Justification <span class="arrow">↕</span></th>
+                <th class="sortable" onclick="sortTable(4)">Status <span class="arrow">↕</span></th>
+                <th class="sortable" onclick="sortTable(5)">Requester <span class="arrow">↕</span></th>
                 <th class="actions">Manage</th>
             </tr>
         </thead>
+
         <tbody>
             {% for r in requests %}
             <tr>
                 <td class="actions">
                     <button onclick="openActionModal('{{ r.requestID }}')" class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">Action</button>
                 </td>
+
                 <td class="actions">
                     <button onclick="openDetailsModal('{{ r.requestID }}')" class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">Details</button>
                 </td>
+
                 <td>{{ r.requestTitle }}</td>
                 <td>{{ r.requestJustification }}</td>
                 <td>{{ r.status.value }}</td>
                 <td>{{ r.requesterID }}</td>
+
                 <td class="actions">
                     <button onclick="openUpdateModal('{{ r.requestID }}','{{ r.requestTitle|escape }}','{{ r.requestJustification|escape }}')" class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">Update</button>
+
                     <a href="/requests/delete/{{ r.requestID }}">
                         <button class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">Delete</button>
                     </a>
@@ -190,7 +220,6 @@
     </table>
 </div>
 
-<!-- ADD / UPDATE MODAL -->
 <div class="modal-overlay" id="modal">
     <form id="requestForm" class="modal" method="POST">
         <h2 id="modalTitle">New Request</h2>
@@ -200,62 +229,85 @@
         <textarea name="requestJustification" id="requestJustification" placeholder="Justification"></textarea>
         <input name="requesterID" placeholder="Requester ID" required>
 
-        <div class="modal-actions space-between">
+        <div class="modal-actions">
             <button type="button" onclick="closeModal()" class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">Cancel</button>
             <button type="submit" id="modalSubmitBtn" class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">Submit</button>
         </div>
     </form>
 </div>
 
-<!-- ACTION MODAL -->
 <div class="modal-overlay" id="actionModal">
-    <div class="modal action-modal">
+    <div class="modal">
         <h2>Request Action</h2>
 
-        <div class="modal-actions stacked">
+        <!-- side-by-side approve/decline -->
+        <div class="modal-actions" style="justify-content:center; gap:12px;">
             <a id="approveLink">
-                <button class="rounded-lg py-2 text-white"
-                    style="background:#16a34a; min-width:140px; text-align:center;"
-                    onmouseover="this.style.filter='brightness(1.1)'"
-                    onmouseout="this.style.filter='none'">
-                    Approve
-                </button>
+                <button style="background:#16a34a;" class="rounded-lg py-2 text-white">Approve</button>
             </a>
+
             <a id="declineLink">
-                <button class="rounded-lg py-2 text-white"
-                    style="background:#dc2626; min-width:140px; text-align:center;"
-                    onmouseover="this.style.filter='brightness(1.1)'"
-                    onmouseout="this.style.filter='none'">
-                    Decline
-                </button>
+                <button style="background:#dc2626;" class="rounded-lg py-2 text-white">Decline</button>
             </a>
         </div>
 
-        <div class="modal-actions">
-            <button onclick="closeActionModal()" class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">Close</button>
+        <!-- bottom-right close (restored) -->
+        <div class="modal-actions" style="justify-content:flex-end;">
+            <button onclick="closeActionModal()" class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
+                Close
+            </button>
         </div>
     </div>
 </div>
 
-<!-- DETAILS MODAL -->
 <div class="modal-overlay" id="detailsModal">
     <div class="modal">
         <h2>Request Details</h2>
         <div id="detailsContent"></div>
-        <div class="modal-actions">
-            <button onclick="closeDetailsModal()" class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">Close</button>
+        <div class="modal-actions" style="justify-content:flex-end;">
+            <button onclick="closeDetailsModal()" class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
+                Close
+            </button>
         </div>
     </div>
 </div>
 
 <script>
+let sortState = {};
+
+function sortTable(col) {
+    const table = document.getElementById("requestsTable");
+    const tbody = table.tBodies[0];
+    const rows = Array.from(tbody.rows);
+
+    sortState[col] = !sortState[col];
+    const asc = sortState[col];
+
+    rows.sort((a, b) => {
+        let A = a.cells[col].innerText.trim();
+        let B = b.cells[col].innerText.trim();
+
+        const numA = parseFloat(A);
+        const numB = parseFloat(B);
+
+        if (!isNaN(numA) && !isNaN(numB)) {
+            return asc ? numA - numB : numB - numA;
+        }
+
+        return asc ? A.localeCompare(B) : B.localeCompare(A);
+    });
+
+    rows.forEach(r => tbody.appendChild(r));
+
+    document.querySelectorAll("#requestsTable th.sortable .arrow").forEach(a => a.textContent = "↕");
+    const active = document.querySelectorAll("#requestsTable th.sortable")[col - 2];
+    if (active) active.querySelector(".arrow").textContent = asc ? "▲" : "▼";
+}
+
 function openAddModal() {
     document.getElementById("modalTitle").innerText = "New Request";
     document.getElementById("modalSubmitBtn").innerText = "Submit";
     document.getElementById("requestForm").action = "/requests/add";
-    document.getElementById("requestID").value = "";
-    document.getElementById("requestTitle").value = "";
-    document.getElementById("requestJustification").value = "";
     document.getElementById("modal").style.display = "flex";
 }
 
