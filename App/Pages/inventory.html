@@ -195,7 +195,7 @@
 </div>
 
 <!-- Add Item -->
-<button onclick="openAddModal()" class="add-item-btn rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
+<button onclick="openAddItemModal()" class="add-item-btn rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
     Add Item
 </button>
 
@@ -209,11 +209,11 @@
     <table id="inventoryTable">
         <thead>
             <tr>
-                <th onclick="sortTable(0)">Item <span class="arrow">↕</span></th>
-                <th onclick="sortTable(1)">Category <span class="arrow">↕</span></th>
-                <th onclick="sortTable(2)">Quantity <span class="arrow">↕</span></th>
-                <th onclick="sortTable(3)">Status <span class="arrow">↕</span></th>
-                <th onclick="sortTable(4)">Photo <span class="arrow">↕</span></th>
+                <th onclick="sortInventoryTable(0)">Item <span class="arrow">↕</span></th>
+                <th onclick="sortInventoryTable(1)">Category <span class="arrow">↕</span></th>
+                <th onclick="sortInventoryTable(2)">Quantity <span class="arrow">↕</span></th>
+                <th onclick="sortInventoryTable(3)">Status <span class="arrow">↕</span></th>
+                <th onclick="sortInventoryTable(4)">Photo <span class="arrow">↕</span></th>
                 <th class="actions">Actions</th>
             </tr>
         </thead>
@@ -242,7 +242,7 @@
             </td>
 
             <td class="actions">
-                <button onclick="openUpdateModal('{{ item.itemID }}','{{ item.itemName|escape }}','{{ item.itemDescription|escape }}','{{ item.itemquantity }}','{{ item.itemphoto|escape }}')" class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
+                <button onclick="openUpdateItemModal('{{ item.itemID }}','{{ item.itemName|escape }}','{{ item.itemDescription|escape }}','{{ item.itemquantity }}','{{ item.itemphoto|escape }}')" class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
                     Update
                 </button>
 
@@ -270,80 +270,11 @@
         <input name="itemphoto" id="itemphoto" placeholder="Photo URL">
 
         <div class="modal-actions">
-            <button type="button" onclick="closeModal()" class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">Cancel</button>
+            <button type="button" onclick="closeItemModal()" class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">Cancel</button>
             <button type="submit" id="modalSubmitBtn" class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">Add Item</button>
         </div>
     </form>
 </div>
-
-<script>
-let sortState = {};
-
-function sortTable(col) {
-    const table = document.getElementById("inventoryTable");
-    const tbody = table.tBodies[0];
-    const rows = Array.from(tbody.rows);
-
-    sortState[col] = !sortState[col];
-    const asc = sortState[col];
-
-    rows.sort((a, b) => {
-        let A = a.cells[col].innerText.trim();
-        let B = b.cells[col].innerText.trim();
-
-        const numA = parseFloat(A);
-        const numB = parseFloat(B);
-
-        if (!isNaN(numA) && !isNaN(numB)) {
-            return asc ? numA - numB : numB - numA;
-        }
-
-        return asc ? A.localeCompare(B) : B.localeCompare(A);
-    });
-
-    rows.forEach(r => tbody.appendChild(r));
-
-    document.querySelectorAll("th span.arrow").forEach(a => a.textContent = "↕");
-    document.querySelectorAll("th")[col].querySelector(".arrow").textContent = asc ? "▲" : "▼";
-}
-
-/* SEARCH FUNCTION */
-function searchTable() {
-    const input = document.getElementById("searchInput");
-    const filter = input.value.toLowerCase();
-    const table = document.getElementById("inventoryTable");
-    const rows = table.getElementsByTagName("tr");
-
-    for (let i = 1; i < rows.length; i++) {
-        const row = rows[i];
-        const text = row.innerText.toLowerCase();
-        row.style.display = text.includes(filter) ? "" : "none";
-    }
-}
-
-function openAddModal() {
-    document.getElementById("modalTitle").innerText = "Add Item";
-    document.getElementById("modalSubmitBtn").innerText = "Add Item";
-    document.getElementById("itemForm").action = "/inventory/add";
-    document.getElementById("modal").style.display = "flex";
-}
-
-function openUpdateModal(id, name, description, quantity, photo) {
-    document.getElementById("modalTitle").innerText = "Update Item";
-    document.getElementById("modalSubmitBtn").innerText = "Update";
-    document.getElementById("itemForm").action = "/inventory/update";
-    document.getElementById("itemID").value = id;
-    document.getElementById("itemName").value = name;
-    document.getElementById("itemDescription").value = description;
-    document.getElementById("itemquantity").value = quantity;
-    document.getElementById("itemphoto").value = photo;
-    document.getElementById("modal").style.display = "flex";
-}
-
-function closeModal() {
-    document.getElementById("modal").style.display = "none";
-}
-</script>
 
 </body>
 </html>
