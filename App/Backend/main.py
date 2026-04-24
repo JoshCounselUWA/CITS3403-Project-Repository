@@ -5,6 +5,14 @@ from flask_cors import CORS
 app = Flask(__name__, template_folder="../Pages", static_folder="../Static")
 CORS(app)
 
+#view dashboard
+@app.route('/dashboard')
+def dashboard():
+    items = session.query(Inventory).all()
+    requests = session.query(Request).all()
+    return render_template("dashboard.html", items=items, requests=requests)
+
+
 #view inventory
 @app.route('/inventory')
 def inventory():
