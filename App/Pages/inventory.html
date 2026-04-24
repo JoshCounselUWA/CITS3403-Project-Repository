@@ -34,6 +34,30 @@
         padding-right: 28px;
     }
 
+    /* SEARCH BAR */
+    .search-bar {
+        position: fixed;
+        top: 90px;
+        left: 300px;
+        z-index: 50;
+        width: 280px;
+    }
+
+    .search-bar input {
+        width: 100%;
+        padding: 8px 10px;
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 8px;
+        color: white;
+    }
+
+    .search-bar input:focus {
+        outline: none;
+        border-color: #38bdf8;
+        background: rgba(56,189,248,0.05);
+    }
+
     .table-container {
         position: absolute;
         top: 140px;
@@ -158,14 +182,12 @@
 <body>
 
 <!-- Header -->
-
 <div class="fixed top-0 left-0 right-0 z-40 flex h-16 items-center gap-4 bg-sky-950 p-3 text-white">
     <img src="../Static/DICE.png" class="logo h-20">
     <h1 class="font-bold">Inventory</h1>
 </div>
 
 <!-- Sidebar -->
-
 <div class="fixed top-16 bottom-0 left-0 w-64 flex flex-col gap-4 bg-slate-900 p-6 text-white">
     <button onclick="window.location.href='dashboard'" class="w-50 rounded-lg bg-sky-900 py-2 hover:bg-blue-800">Dashboard</button>
     <button onclick="window.location.href='requests'" class="w-50 rounded-lg bg-sky-900 py-2 hover:bg-blue-800">Requests</button>
@@ -173,13 +195,16 @@
 </div>
 
 <!-- Add Item -->
-
 <button onclick="openAddModal()" class="add-item-btn rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
     Add Item
 </button>
 
-<!-- Table -->
+<!-- SEARCH BAR -->
+<div class="search-bar">
+    <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="Search items...">
+</div>
 
+<!-- Table -->
 <div class="table-container">
     <table id="inventoryTable">
         <thead>
@@ -193,8 +218,7 @@
             </tr>
         </thead>
 
-
-    <tbody>
+        <tbody>
         {% for item in items %}
         <tr>
             <td>{{ item.itemName }}</td>
@@ -230,32 +254,26 @@
             </td>
         </tr>
         {% endfor %}
-    </tbody>
-</table>
-
-
+        </tbody>
+    </table>
 </div>
 
 <!-- Modal -->
-
 <div class="modal-overlay" id="modal">
     <form id="itemForm" class="modal" method="POST">
         <h2 id="modalTitle">Add Item</h2>
 
+        <input type="hidden" name="itemID" id="itemID">
+        <input name="itemName" id="itemName" placeholder="Item Name" required>
+        <input name="itemDescription" id="itemDescription" placeholder="Description">
+        <input name="itemquantity" id="itemquantity" type="number" placeholder="Quantity" required>
+        <input name="itemphoto" id="itemphoto" placeholder="Photo URL">
 
-    <input type="hidden" name="itemID" id="itemID">
-    <input name="itemName" id="itemName" placeholder="Item Name" required>
-    <input name="itemDescription" id="itemDescription" placeholder="Description">
-    <input name="itemquantity" id="itemquantity" type="number" placeholder="Quantity" required>
-    <input name="itemphoto" id="itemphoto" placeholder="Photo URL">
-
-    <div class="modal-actions">
-        <button type="button" onclick="closeModal()" class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">Cancel</button>
-        <button type="submit" id="modalSubmitBtn" class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">Add Item</button>
-    </div>
-</form>
-
-
+        <div class="modal-actions">
+            <button type="button" onclick="closeModal()" class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">Cancel</button>
+            <button type="submit" id="modalSubmitBtn" class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">Add Item</button>
+        </div>
+    </form>
 </div>
 
 <script>
@@ -287,6 +305,20 @@ function sortTable(col) {
 
     document.querySelectorAll("th span.arrow").forEach(a => a.textContent = "↕");
     document.querySelectorAll("th")[col].querySelector(".arrow").textContent = asc ? "▲" : "▼";
+}
+
+/* SEARCH FUNCTION */
+function searchTable() {
+    const input = document.getElementById("searchInput");
+    const filter = input.value.toLowerCase();
+    const table = document.getElementById("inventoryTable");
+    const rows = table.getElementsByTagName("tr");
+
+    for (let i = 1; i < rows.length; i++) {
+        const row = rows[i];
+        const text = row.innerText.toLowerCase();
+        row.style.display = text.includes(filter) ? "" : "none";
+    }
 }
 
 function openAddModal() {
