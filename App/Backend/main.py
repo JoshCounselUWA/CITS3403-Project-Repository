@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for
 from models import session, Inventory, Request, Account
 from flask_cors import CORS
+from flask import flash
 
 app = Flask(__name__, template_folder="../Pages", static_folder="../Static")
 CORS(app)
@@ -39,7 +40,10 @@ def add_inventory():
 def delete_inventory(item_id):
     item = session.query(Inventory).get(item_id)
 
-    if item:
+    if not item:
+        flash('Item not found', 'error')
+        return redirect(url_for('inventory'))
+    else:
         session.delete(item)
         session.commit()
 
@@ -50,7 +54,10 @@ def delete_inventory(item_id):
 def update_inventory(item_id):
     item = session.query(Inventory).get(item_id)
 
-    if item:
+    if not item:
+        flash('Item not found', 'error')
+        return redirect(url_for('inventory'))
+    else:
         if 'itemName' in request.form:
             item.itemName = request.form['itemName']
         if 'itemDescription' in request.form:
@@ -76,7 +83,6 @@ def add_request():
     new_request = Request(
         requestTitle=request.form['requestTitle'],
         requestJustification=request.form['requestJustification'],
-        requesterID=request.form['requesterID'],
         eventDateStart=request.form.get('eventDateStart'),
         eventDateEnd=request.form.get('eventDateEnd'),
         returnDate=request.form.get('returnDate')
@@ -92,7 +98,10 @@ def add_request():
 def delete_request(request_id):
     req = session.query(Request).get(request_id)
 
-    if req:
+    if not req:
+        flash('Requset not found', 'error')
+        return redirect(url_for('requests_page'))
+    else:
         session.delete(req)
         session.commit()
 
@@ -103,7 +112,10 @@ def delete_request(request_id):
 def update_request(request_id):
     req = session.query(Request).get(request_id)
 
-    if req:
+    if not req:
+        flash('Requset not found', 'error')
+        return redirect(url_for('requests_page'))
+    else:
         if 'requestTitle' in request.form:
             req.requestTitle = request.form['requestTitle']
         if 'requestJustification' in request.form:
