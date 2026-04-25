@@ -125,7 +125,16 @@ class Department(Base):
     __tablename__ = 'Department'
     departmentID = Column(Integer, primary_key=True)
     departmentName = Column(String)
+
+    def to_json(self):
+        return {
+            "departmentID": self.departmentID,
+            "departmentName": self.departmentName
+        }
     
+    def __repr__(self):
+        return f"<Department(departmentID={self.departmentID})>"
+
 engine = create_engine('sqlite:///DICEapp.db')
 Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
