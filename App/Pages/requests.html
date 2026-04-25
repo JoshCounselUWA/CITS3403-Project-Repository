@@ -117,6 +117,8 @@
         background: #020617;
         padding: 20px;
         width: 400px;
+        max-height: 90vh;
+        overflow-y: auto;
         border-radius: 12px;
         color: white;
         border: 1px solid rgba(255,255,255,0.08);
@@ -136,6 +138,7 @@
         color: white;
         border: 1px solid rgba(255,255,255,0.15);
         border-radius: 6px;
+        box-sizing: border-box;
     }
 
     .modal input:focus,
@@ -155,6 +158,40 @@
     table td.actions button {
         padding-left: 16px;
         padding-right: 16px;
+    }
+
+    /* ITEM PICKER */
+    .item-picker-divider {
+        border: none;
+        border-top: 1px solid rgba(255,255,255,0.1);
+        margin: 12px 0;
+    }
+
+    .item-picker-label {
+        color: rgba(255,255,255,0.5);
+        font-size: 0.8rem;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    #itemDropdown {
+        display: none;
+        background: #0f172a;
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 6px;
+        max-height: 150px;
+        overflow-y: auto;
+        margin-bottom: 10px;
+        margin-top: -6px;
+    }
+
+    #pickedItems {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        margin-bottom: 10px;
+        min-height: 24px;
     }
 </style>
 
@@ -228,6 +265,18 @@
         <input name="requestTitle" id="requestTitle" placeholder="Request Title" required>
         <textarea name="requestJustification" id="requestJustification" placeholder="Justification"></textarea>
         <input name="requesterID" placeholder="Requester ID" required>
+
+        <!-- Item Picker -->
+        <hr class="item-picker-divider">
+        <p class="item-picker-label">Requested Items</p>
+
+        <input type="text" id="itemSearch" placeholder="Search inventory to add items..."
+               oninput="filterItemDropdown()">
+
+        <div id="itemDropdown"></div>
+        <div id="pickedItems"></div>
+
+        <input type="hidden" name="itemsJSON" id="itemsJSON">
 
         <div class="modal-actions">
             <button type="button" onclick="closeModal()" class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">Cancel</button>
