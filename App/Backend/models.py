@@ -33,6 +33,8 @@ class Status(enum.Enum):
     approved = "approved"
     rejected = "rejected"
     waiting = "waiting"
+    returnded = "returned"
+    loaned = "loaned"
 
 class Request(Base):
     __tablename__ = 'requests'
@@ -48,6 +50,8 @@ class Request(Base):
     overdue = Column(Boolean, default=False)
     requesterID = Column(Integer, ForeignKey('Account.userID'), nullable=False) #foreign user
     approverID = Column(Integer, ForeignKey('Account.userID')) #foreign user department head
+
+    departmentID = Column(Integer, ForeignKey('Department.departmentID'))
 
     items = relationship("RequestItems", back_populates="request", cascade="all, delete-orphan")
 

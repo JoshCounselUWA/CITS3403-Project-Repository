@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 from models import session, Inventory, Request, Account
 from flask_cors import CORS
 from flask import flash
@@ -143,6 +143,44 @@ def update_request(request_id):
         session.commit()
 
     return redirect(url_for('requests_page'))
+
+#late return
+@app.route("/requests/overdue")
+def get_overdue_requests():
+    from datetime import datetime
+    now = datetime.now()
+
+    overdue_requests = session.query(Request).filter(
+        Request.returnDate < now,
+        Request.status != "returned"
+    ).all()
+
+    return jsonify([r.to_dict() for r in overdue_requests])
+#upcoming booking
+@app.route("/requests/future")
+def get_future_requests():
+    from datetime import datetime
+    now = datetime.now()
+
+    requests = session.query(Request).filter(
+        Request.eventDateStart >= now,
+        Request.status == "approved"
+    ).all()
+
+    return jsonify([r.to_dict() for r in requests])
+#current loans
+@app.route("/requests/current")
+def get_current_requests():
+    from datetime import datetime
+    now = datetime.now()
+
+    current_requests = session.query(Request).filter(
+        Request.eventDateStart <= now,
+        Request.returnDate >= now,
+        Request.status == "loaned"
+    ).all()
+
+    return jsonify([r.to_dict() for r in current_requests])
 
 if __name__ == "__main__":
     app.run(debug=True)
