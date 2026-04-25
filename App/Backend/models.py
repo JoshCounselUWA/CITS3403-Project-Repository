@@ -47,6 +47,8 @@ class Request(Base):
     requesterID = Column(Integer, ForeignKey('Account.userID'), nullable=False) #foreign user
     approverID = Column(Integer, ForeignKey('Account.userID')) #foreign user department head
 
+    items = relationship("RequestItems", back_populates="request", cascade="all, delete-orphan")
+
     def to_json(self):
         return {
             "requestID": self.requesterID,
@@ -63,6 +65,27 @@ class Request(Base):
 
     def __repr__(self):
         return f"<Request(title={self.requestTitle}, status={self.status})>"
+
+class RequestItems(Base):
+    __tablename__ = 'RequestItems'
+    id = Column(Integer, primary_key=True)
+    requestID = Column(Integer, ForeignKey('requests.requestID'), nullable=False)
+    itemID = Column(Integer, ForeignKey('inventory.itemID'), nullable=False)
+    quantity = Column(Integer, default=1)
+
+    request = relationship("Request", back_populates="items")
+    inventory = relationship("Inventory")
+
+    def to_json(self):
+        return {
+            "id": self.id,
+            "requestID": self.requestID,
+            "itemID": self.itemID,
+            "quantity": self.quantity
+        }
+
+    def __repr__(self):
+        return f"<RequestItems(requestID={self.requestID}, itemID={self.itemID}, qty={self.quantity})>"
 
 class ItemList(Base):
     __tablename__ = 'ItemList'
@@ -119,4 +142,3 @@ engine = create_engine('sqlite:///DICEapp.db')
 Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
 session = Session()
-
