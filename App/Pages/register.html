@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - DICE</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        /* Register page specific styles - to be moved to shared CSS later */
+        .login-wrapper {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #07162B;
+            padding: 2.5rem;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 380px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            box-sizing: border-box;
+            color: white;
+            font-family: Verdana, Geneva, Tahoma, sans-serif;
+        }
+
+        .login-wrapper h2 {
+            margin: 0 0 1.5rem 0;
+            text-align: center;
+            font-size: 24px;
+        }
+
+        .login-wrapper label {
+            display: inline-block;
+            margin-bottom: 0.4rem;
+            font-size: 14px;
+        }
+
+        .login-wrapper input[type="text"],
+        .login-wrapper input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 0.5rem;
+            background-color: #0A254F;
+            border: 1px solid #0E3A78;
+            border-radius: 6px;
+            color: white;
+            font-size: 14px;
+            box-sizing: border-box;
+            font-family: Verdana, Geneva, Tahoma, sans-serif;
+        }
+
+        .login-wrapper input[type="text"]:focus,
+        .login-wrapper input[type="password"]:focus {
+            outline: none;
+            border-color: #1F5FBF;
+        }
+
+        .login-wrapper input[type="submit"] {
+            width: 100%;
+            height: 45px;
+            margin-top: 0.5rem;
+            color: white;
+            background-color: #0E3A78;
+            border-radius: 8px;
+            border: none;
+            font-size: 15px;
+            cursor: pointer;
+            font-family: Verdana, Geneva, Tahoma, sans-serif;
+            position: static;
+            left: auto;
+        }
+
+        .login-wrapper input[type="submit"]:hover {
+            background-color: #1F5FBF;
+        }
+
+        .login-wrapper a {
+            color: #1F5FBF;
+            text-decoration: none;
+        }
+
+        .login-wrapper a:hover {
+            text-decoration: underline;
+        }
+
+        .login-wrapper p {
+            margin: 0.75rem 0;
+            font-size: 14px;
+        }
+
+        .flash-messages {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 1rem 0;
+            color: #E85D5D;
+            font-size: 13px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="topbar">
+        <img src="{{ url_for('static', filename='DICE.png') }}" alt="DICE Logo" class="logo">
+    </div>
+
+    <div class="login-wrapper">
+        <h2>Register</h2>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <ul class="flash-messages">
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+
+        <form name="register" method="post" action="">
+            {{ form.hidden_tag() }}
+
+            <p>
+                {{ form.first_name.label }}<br>
+                {{ form.first_name(size=20) }}
+                {% for error in form.first_name.errors %}
+                    <span style="color:red;">[{{ error }}]</span>
+                {% endfor %}
+            </p>
+
+            <p>
+                {{ form.last_name.label }}<br>
+                {{ form.last_name(size=20) }}
+                {% for error in form.last_name.errors %}
+                    <span style="color:red;">[{{ error }}]</span>
+                {% endfor %}
+            </p>
+
+            <p>
+                {{ form.username.label }}<br>
+                {{ form.username(size=20) }}
+                {% for error in form.username.errors %}
+                    <span style="color:red;">[{{ error }}]</span>
+                {% endfor %}
+            </p>
+
+            <p>
+                {{ form.password.label }}<br>
+                {{ form.password(size=20) }}
+                {% for error in form.password.errors %}
+                    <span style="color:red;">[{{ error }}]</span>
+                {% endfor %}
+            </p>
+
+            <p>
+                {{ form.confirm_password.label }}<br>
+                {{ form.confirm_password(size=20) }}
+                {% for error in form.confirm_password.errors %}
+                    <span style="color:red;">[{{ error }}]</span>
+                {% endfor %}
+            </p>
+
+            <p>{{ form.submit() }}</p>
+        </form>
+
+        <p>Already have an account? <a href="{{ url_for('login') }}">Log in</a></p>
+    </div>
+
+</body>
+</html>
