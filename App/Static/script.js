@@ -31,13 +31,14 @@ function openAddModal() {
     document.getElementById("modalTitle").innerText = "New Request";
     document.getElementById("modalSubmitBtn").innerText = "Submit";
     document.getElementById("requestForm").action = "/requests/add";
+    document.getElementById("requestForm").reset();
     document.getElementById("modal").style.display = "flex";
 }
 
 function openUpdateModal(id, title, justification) {
     document.getElementById("modalTitle").innerText = "Update Request";
     document.getElementById("modalSubmitBtn").innerText = "Update";
-    document.getElementById("requestForm").action = "/requests/update";
+    document.getElementById("requestForm").action = "/requests/" + id;
     document.getElementById("requestID").value = id;
     document.getElementById("requestTitle").value = title;
     document.getElementById("requestJustification").value = justification;
@@ -112,13 +113,14 @@ function openAddItemModal() {
     document.getElementById("modalTitle").innerText = "Add Item";
     document.getElementById("modalSubmitBtn").innerText = "Add Item";
     document.getElementById("itemForm").action = "/inventory/add";
+    document.getElementById("itemForm").reset();
     document.getElementById("modal").style.display = "flex";
 }
 
 function openUpdateItemModal(id, name, description, quantity, photo) {
     document.getElementById("modalTitle").innerText = "Update Item";
     document.getElementById("modalSubmitBtn").innerText = "Update";
-    document.getElementById("itemForm").action = "/inventory/update";
+    document.getElementById("itemForm").action = "/inventory/" + id;
     document.getElementById("itemID").value = id;
     document.getElementById("itemName").value = name;
     document.getElementById("itemDescription").value = description;
