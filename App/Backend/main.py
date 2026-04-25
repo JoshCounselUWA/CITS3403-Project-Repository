@@ -1,10 +1,12 @@
-from flask import Flask, render_template, request, redirect, url_for
-from models import session, Inventory, Request, Account
+from flask import Flask, render_template, request, redirect, url_for, jsonify
+from models import session, Inventory, Request, RequestItems, Account
 from flask_cors import CORS
 from flask import flash
+import json
 
 app = Flask(__name__, template_folder="../Pages", static_folder="../Static")
 CORS(app)
+app.secret_key = 'your-secret-key-here'
 
 #view dashboard
 @app.route('/dashboard')
@@ -19,6 +21,12 @@ def dashboard():
 def inventory():
     items = session.query(Inventory).all()
     return render_template("inventory.html", items=items)
+
+#inventory as json (for item picker)
+@app.route('/inventory/json')
+def inventory_json():
+    items = session.query(Inventory).all()
+    return jsonify({'items': [i.to_json() for i in items]})
 
 #add inventory
 @app.route('/inventory/add', methods=['POST'])
@@ -85,11 +93,28 @@ def add_request():
         requestJustification=request.form['requestJustification'],
         eventDateStart=request.form.get('eventDateStart'),
         eventDateEnd=request.form.get('eventDateEnd'),
-        returnDate=request.form.get('returnDate')
+        returnDate=request.form.get('returnDate'),
+        requesterID=request.form.get('requesterID')
     )
 
     session.add(new_request)
     session.commit()
+
+    #save requested items
+    items_json = request.form.get('itemsJSON')
+    if items_json:
+        try:
+            items = json.loads(items_json)
+            for entry in items:
+                ri = RequestItems(
+                    requestID=new_request.requestID,
+                    itemID=entry['itemID'],
+                    quantity=entry['quantity']
+                )
+                session.add(ri)
+            session.commit()
+        except Exception as e:
+            print(f"Error saving request items: {e}")
 
     return redirect(url_for('requests_page'))
 
@@ -133,9 +158,40 @@ def update_request(request_id):
         if 'approverID' in request.form:
             req.approverID = request.form['approverID']
 
+        #update requested items - clear old ones and replace
+        items_json = request.form.get('itemsJSON')
+        if items_json is not None:
+            try:
+                session.query(RequestItems).filter_by(requestID=request_id).delete()
+                items = json.loads(items_json)
+                for entry in items:
+                    ri = RequestItems(
+                        requestID=request_id,
+                        itemID=entry['itemID'],
+                        quantity=entry['quantity']
+                    )
+                    session.add(ri)
+            except Exception as e:
+                print(f"Error updating request items: {e}")
+
         session.commit()
 
     return redirect(url_for('requests_page'))
+
+#get items for a request (used by details modal)
+@app.route('/requests/items/<int:request_id>', methods=['GET'])
+def get_request_items(request_id):
+    items = session.query(RequestItems).filter_by(requestID=request_id).all()
+    result = []
+    for ri in items:
+        inv = session.query(Inventory).get(ri.itemID)
+        result.append({
+            'itemID': ri.itemID,
+            'itemName': inv.itemName if inv else 'Unknown',
+            'itemquantity': inv.itemquantity if inv else 0,
+            'quantity': ri.quantity
+        })
+    return jsonify({'items': result})
 
 if __name__ == "__main__":
     app.run(debug=True)
