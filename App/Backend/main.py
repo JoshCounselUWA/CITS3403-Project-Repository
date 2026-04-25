@@ -1,5 +1,5 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
-from forms import LoginForm
+from forms import LoginForm, RegistrationForm
 from werkzeug.security import check_password_hash, generate_password_hash
 from models import session, Inventory, Request, Account
 from flask_cors import CORS
@@ -43,6 +43,32 @@ def login():
         return redirect(url_for('inventory'))
 
     return render_template('login.html', form=form)
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        # Check if username is already taken or valid
+        existing = session.query(Account).filter_by(userName=form.username.data).first()
+        if existing:
+            flash('Username already taken. Please try again.')
+            return redirect(url_for('register'))
+
+        # Create new account
+        new_user = Account(
+            fName=form.first_name.data,
+            lName=form.last_name.data,
+            userName=form.username.data,
+            password_hash=generate_password_hash(form.password.data),
+            accountType='user'
+        )
+        session.add(new_user)
+        session.commit()
+
+        flash('Account created! Please log in.')
+        return redirect(url_for('login'))
+
+    return render_template('register.html', form=form)
       
 #view inventory
 @app.route('/inventory')
