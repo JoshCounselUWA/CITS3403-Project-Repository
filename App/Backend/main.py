@@ -156,6 +156,7 @@ def get_overdue_requests():
     ).all()
 
     return jsonify([r.to_dict() for r in overdue_requests])
+
 #upcoming booking
 @app.route("/requests/future")
 def get_future_requests():
@@ -168,6 +169,7 @@ def get_future_requests():
     ).all()
 
     return jsonify([r.to_dict() for r in requests])
+
 #current loans
 @app.route("/requests/current")
 def get_current_requests():
@@ -181,6 +183,34 @@ def get_current_requests():
     ).all()
 
     return jsonify([r.to_dict() for r in current_requests])
+
+#calander
+@app.route("/requests/calendar")
+def get_calendar_events():
+    from datetime import datetime
+    now = datetime.now()
+
+    future = session.query(Request).filter(
+        Request.eventDateStart >= now,
+        Request.status == "approved"
+    ).all()
+
+    current = session.query(Request).filter(
+        Request.eventDateStart <= now,
+        Request.returnDate >= now,
+        Request.status == "loaned"
+    ).all()
+
+    overdue = session.query(Request).filter(
+        Request.returnDate < now,
+        Request.status != "returned"
+    ).all()
+
+    return jsonify({
+        "future": [r.to_dict() for r in future],
+        "current": [r.to_dict() for r in current],
+        "overdue": [r.to_dict() for r in overdue]
+    })
 
 if __name__ == "__main__":
     app.run(debug=True)
