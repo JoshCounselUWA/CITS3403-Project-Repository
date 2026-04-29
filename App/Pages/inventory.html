@@ -1,223 +1,280 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventory</title>
 
-    <link rel="stylesheet" href="../Static/output.css">
-    <script src="../Static/script.js" defer></script>
+<link rel="stylesheet" href="../Static/output.css">
+<script src="../Static/script.js" defer></script>
+<link rel="icon" type="image/x-icon" href="../Static/DICE_favicon.png">
 
-    <style>
-        html, body {
-            height: 100%;
-            margin: 0;
-        }
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+    }
 
-        body {
-            overflow: hidden;
-        }
+    body {
+        overflow: hidden;
+        background: #020617;
+    }
 
-        .add-item-btn {
-            position: fixed;
-            top: 90px;
-            right: 20px;
-            z-index: 50;
-        }
+    button {
+        cursor: pointer;
+    }
 
-        .table-container {
-            position: absolute;
-            top: 140px;
-            left: 300px;
-            right: 20px;
-            bottom: 20px;
-            overflow: auto;
-        }
+    .add-item-btn {
+        position: fixed;
+        top: 90px;
+        right: 20px;
+        z-index: 50;
+        padding-left: 28px;
+        padding-right: 28px;
+    }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            color: white;
-            border: 1px solid white;
-        }
+    /* SEARCH BAR */
+    .search-bar {
+        position: fixed;
+        top: 90px;
+        left: 300px;
+        z-index: 50;
+        width: 280px;
+    }
 
-        th, td {
-            border: 1px solid white;
-            padding: 8px;
-            text-align: left;
-        }
+    .search-bar input {
+        width: 100%;
+        padding: 8px 10px;
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 8px;
+        color: white;
+    }
 
-        
-        th.actions,
-        td.actions {
-            white-space: nowrap;
-            width: 1%;
-        }
+    .search-bar input:focus {
+        outline: none;
+        border-color: #38bdf8;
+        background: rgba(56,189,248,0.05);
+    }
 
-        
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.6);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 100;
-        }
+    .table-container {
+        position: absolute;
+        top: 140px;
+        left: 300px;
+        right: 20px;
+        bottom: 20px;
+        overflow: auto;
+    }
 
-        .modal {
-            background: #050B14;
-            padding: 20px;
-            width: 400px;
-            border-radius: 8px;
-            color: white;
-        }
+    table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        background: #020617;
+        border-radius: 12px;
+        overflow: hidden;
+    }
 
-        .modal h2 {
-            margin-bottom: 14px;
-        }
+    thead {
+        background: #0c4a6e;
+    }
 
-        .modal input {
-            width: 100%;
-            padding: 6px;
-            margin-bottom: 10px;
-            background: transparent;
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.35);
-            border-radius: 4px;
-        }
+    th {
+        padding: 12px;
+        text-align: left;
+        font-weight: 600;
+        color: white;
+        cursor: pointer;
+        user-select: none;
+    }
 
-        .modal input:focus {
-            outline: none;
-            border-color: rgba(255, 255, 255, 0.6);
-        }
+    th span.arrow {
+        margin-left: 6px;
+        font-size: 0.8rem;
+        opacity: 0.7;
+    }
 
-        .modal-actions {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 10px;
-        }
+    td {
+        padding: 12px;
+        border-top: 1px solid rgba(255,255,255,0.08);
+        color: white;
+    }
 
-        
-        .modal-actions button,
-        table td.actions button {
-            padding-left: 16px;
-            padding-right: 16px;
-        }
-    </style>
+    tbody tr:nth-child(even) {
+        background: rgba(255,255,255,0.02);
+    }
+
+    tbody tr:hover {
+        background: rgba(56,189,248,0.1);
+    }
+
+    th.actions,
+    td.actions {
+        white-space: nowrap;
+        width: 1%;
+        cursor: default;
+    }
+
+    table button {
+        font-size: 0.9rem;
+        padding-top: 6px;
+        padding-bottom: 6px;
+    }
+
+    /* MODAL */
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(2, 6, 23, 0.75);
+        backdrop-filter: blur(4px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+    }
+
+    .modal {
+        background: #020617;
+        padding: 20px;
+        width: 400px;
+        border-radius: 12px;
+        color: white;
+        border: 1px solid rgba(255,255,255,0.08);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    }
+
+    .modal h2 {
+        margin-bottom: 14px;
+    }
+
+    .modal input {
+        width: 100%;
+        padding: 6px;
+        margin-bottom: 10px;
+        background: rgba(255,255,255,0.02);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 6px;
+    }
+
+    .modal input:focus {
+        outline: none;
+        border-color: #38bdf8;
+        background: rgba(56,189,248,0.05);
+    }
+
+    .modal-actions {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 10px;
+    }
+
+    .modal-actions button,
+    table td.actions button {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+</style>
+
 </head>
+
 <body>
 
-    <!-- Header -->
-    <div class="fixed top-0 left-0 right-0 z-40 flex h-16 items-center gap-4 bg-sky-950 p-3 text-white">
-        <img src="../Static/DICE.png" alt="Digital Inventory Control Environment" class="logo h-20">
-        <h1 class="font-bold">Inventory</h1>
-    </div>
+<!-- Header -->
+<div class="fixed top-0 left-0 right-0 z-40 flex h-16 items-center gap-4 bg-sky-950 p-3 text-white">
+    <img src="../Static/DICE.png" class="logo h-20">
+    <h1 class="font-bold">Inventory</h1>
+</div>
 
-    <!-- Sidebar -->
-    <div class="fixed top-16 bottom-0 left-0 w-64 flex flex-col gap-4 bg-slate-900 p-6 text-white">
-        <button onclick="window.location.href='dashboard'" class="w-50 cursor-pointer rounded-lg bg-sky-900 py-2 hover:bg-blue-800">Dashboard</button>
-        <button onclick="window.location.href='requests'"  class="w-50 cursor-pointer rounded-lg bg-sky-900 py-2 hover:bg-blue-800">Requests</button>
-        <button onclick="window.location.href='inventory'" class="w-50 cursor-pointer rounded-lg bg-sky-900 py-2 hover:bg-blue-800">Inventory</button>
-    </div>
+<!-- Sidebar -->
+<div class="fixed top-16 bottom-0 left-0 w-64 flex flex-col gap-4 bg-slate-900 p-6 text-white">
+    <button onclick="window.location.href='dashboard'" class="w-50 rounded-lg bg-sky-900 py-2 hover:bg-blue-800">Dashboard</button>
+    <button onclick="window.location.href='requests'" class="w-50 rounded-lg bg-sky-900 py-2 hover:bg-blue-800">Requests</button>
+    <button onclick="window.location.href='inventory'" class="w-50 rounded-lg bg-sky-900 py-2 hover:bg-blue-800">Inventory</button>
+</div>
 
-    <!-- Add Item Button -->
-    <button onclick="openAddModal()" class="add-item-btn w-50 cursor-pointer rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
-        Add Item
-    </button>
+<!-- Add Item -->
+<button onclick="openAddItemModal()" class="add-item-btn rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
+    Add Item
+</button>
 
-    <!-- Table -->
-    <div class="table-container">
-        <table>
-            <thead>
-                <tr>
-                    <th>Item</th>
-                    <th>Category</th>
-                    <th>Quantity</th>
-                    <th>Status</th>
-                    <th>Photo</th>
-                    <th class="actions">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in items %}
-                <tr>
-                    <td>{{ item.itemName }}</td>
-                    <td>{{ item.itemDescription }}</td>
-                    <td>{{ item.itemquantity }}</td>
-                    <td>{% if item.itemquantity > 0 %}In Stock{% else %}Out of Stock{% endif %}</td>
-                    <td>
-                        {% if item.itemphoto %}
-                            <img src="{{ item.itemphoto }}" alt="{{ item.itemName }}" class="h-16 w-16 object-cover rounded">
-                        {% else %}
-                            <span>No photo</span>
-                        {% endif %}
-                    </td>
-                    <td class="actions">
-                        <button
-                            onclick="openUpdateModal('{{ item.itemID }}','{{ item.itemName|escape }}','{{ item.itemDescription|escape }}','{{ item.itemquantity }}','{{ item.itemphoto|escape }}')"
-                            class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
-                            Update
-                        </button>
-                        <a href="/inventory/delete/{{ item.itemID }}">
-                            <button class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
-                                Delete
-                            </button>
-                        </a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+<!-- SEARCH BAR -->
+<div class="search-bar">
+    <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="Search items...">
+</div>
 
-    <!-- Modal -->
-    <div class="modal-overlay" id="modal">
-        <form id="itemForm" class="modal" method="POST">
-            <h2 id="modalTitle">Add Item</h2>
+<!-- Table -->
+<div class="table-container">
+    <table id="inventoryTable">
+        <thead>
+            <tr>
+                <th onclick="sortInventoryTable(0)">Item <span class="arrow">↕</span></th>
+                <th onclick="sortInventoryTable(1)">Category <span class="arrow">↕</span></th>
+                <th onclick="sortInventoryTable(2)">Quantity <span class="arrow">↕</span></th>
+                <th onclick="sortInventoryTable(3)">Status <span class="arrow">↕</span></th>
+                <th onclick="sortInventoryTable(4)">Photo <span class="arrow">↕</span></th>
+                <th class="actions">Actions</th>
+            </tr>
+        </thead>
 
-            <input type="hidden" name="itemID" id="itemID">
-            <input name="itemName" id="itemName" placeholder="Item Name" required>
-            <input name="itemDescription" id="itemDescription" placeholder="Description">
-            <input name="itemquantity" id="itemquantity" type="number" placeholder="Quantity" required>
-            <input name="itemphoto" id="itemphoto" placeholder="Photo URL">
+        <tbody>
+        {% for item in items %}
+        <tr>
+            <td>{{ item.itemName }}</td>
+            <td>{{ item.itemDescription }}</td>
+            <td>{{ item.itemquantity }}</td>
 
-            <div class="modal-actions">
-                <button type="button" onclick="closeModal()" class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">Cancel</button>
-                <button type="submit" id="modalSubmitBtn" class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">Add Item</button>
-            </div>
-        </form>
-    </div>
+            <td>
+                {% if item.itemquantity > 0 %}
+                    <span>In Stock</span>
+                {% else %}
+                    <span>Out of Stock</span>
+                {% endif %}
+            </td>
 
-    <script>
-        function openAddModal() {
-            document.getElementById("modalTitle").innerText = "Add Item";
-            document.getElementById("modalSubmitBtn").innerText = "Add Item";
-            document.getElementById("itemForm").action = "/inventory/add";
-            document.getElementById("itemID").value = "";
-            document.getElementById("itemName").value = "";
-            document.getElementById("itemDescription").value = "";
-            document.getElementById("itemquantity").value = "";
-            document.getElementById("itemphoto").value = "";
-            document.getElementById("modal").style.display = "flex";
-        }
+            <td>
+                {% if item.itemphoto %}
+                    <img src="{{ item.itemphoto }}" class="h-16 w-16 object-cover rounded-lg border border-white/10">
+                {% else %}
+                    <span>No photo</span>
+                {% endif %}
+            </td>
 
-        function openUpdateModal(id, name, description, quantity, photo) {
-            document.getElementById("modalTitle").innerText = "Update Item";
-            document.getElementById("modalSubmitBtn").innerText = "Update";
-            document.getElementById("itemForm").action = "/inventory/update";
-            document.getElementById("itemID").value = id;
-            document.getElementById("itemName").value = name;
-            document.getElementById("itemDescription").value = description;
-            document.getElementById("itemquantity").value = quantity;
-            document.getElementById("itemphoto").value = photo;
-            document.getElementById("modal").style.display = "flex";
-        }
+            <td class="actions">
+                <button onclick="openUpdateItemModal('{{ item.itemID }}','{{ item.itemName|escape }}','{{ item.itemDescription|escape }}','{{ item.itemquantity }}','{{ item.itemphoto|escape }}')" class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
+                    Update
+                </button>
 
-        function closeModal() {
-            document.getElementById("modal").style.display = "none";
-        }
-    </script>
+                <a href="/inventory/delete/{{ item.itemID }}">
+                    <button class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
+                        Delete
+                    </button>
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal">
+    <form id="itemForm" class="modal" method="POST">
+        <h2 id="modalTitle">Add Item</h2>
+
+        <input type="hidden" name="itemID" id="itemID">
+        <input name="itemName" id="itemName" placeholder="Item Name" required>
+        <input name="itemDescription" id="itemDescription" placeholder="Category">
+        <input name="itemquantity" id="itemquantity" type="number" placeholder="Quantity" required>
+        <input name="itemphoto" id="itemphoto" placeholder="Photo URL">
+
+        <div class="modal-actions">
+            <button type="button" onclick="closeItemModal()" class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">Cancel</button>
+            <button type="submit" id="modalSubmitBtn" class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">Add Item</button>
+        </div>
+    </form>
+</div>
 
 </body>
 </html>

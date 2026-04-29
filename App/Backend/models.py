@@ -15,6 +15,8 @@ class Inventory(Base):
     itemquantity = Column(Integer, default=0)
     itemphoto = Column(String) #optional I guess, for url or file path of course
 
+    departmentID = Column(Integer, ForeignKey('Department.departmentID'))
+
     def to_json(self):
         return {
             "itemID": self.itemID,
@@ -31,6 +33,8 @@ class Status(enum.Enum):
     approved = "approved"
     rejected = "rejected"
     waiting = "waiting"
+    returnded = "returned"
+    loaned = "loaned"
 
 class Request(Base):
     __tablename__ = 'requests'
@@ -46,6 +50,10 @@ class Request(Base):
     overdue = Column(Boolean, default=False)
     requesterID = Column(Integer, ForeignKey('Account.userID'), nullable=False) #foreign user
     approverID = Column(Integer, ForeignKey('Account.userID')) #foreign user department head
+
+    departmentID = Column(Integer, ForeignKey('Department.departmentID'))
+
+    items = relationship("RequestItems", back_populates="request", cascade="all, delete-orphan")
 
     def to_json(self):
         return {
@@ -63,6 +71,27 @@ class Request(Base):
 
     def __repr__(self):
         return f"<Request(title={self.requestTitle}, status={self.status})>"
+
+class RequestItems(Base):
+    __tablename__ = 'RequestItems'
+    id = Column(Integer, primary_key=True)
+    requestID = Column(Integer, ForeignKey('requests.requestID'), nullable=False)
+    itemID = Column(Integer, ForeignKey('inventory.itemID'), nullable=False)
+    quantity = Column(Integer, default=1)
+
+    request = relationship("Request", back_populates="items")
+    inventory = relationship("Inventory")
+
+    def to_json(self):
+        return {
+            "id": self.id,
+            "requestID": self.requestID,
+            "itemID": self.itemID,
+            "quantity": self.quantity
+        }
+
+    def __repr__(self):
+        return f"<RequestItems(requestID={self.requestID}, itemID={self.itemID}, qty={self.quantity})>"
 
 class ItemList(Base):
     __tablename__ = 'ItemList'
@@ -102,6 +131,8 @@ class Account(Base):
     password_hash = Column(String, nullable=False) 
     accountType = Column(String,nullable=False)
 
+    departmentID = Column(Integer, ForeignKey('Department.departmentID'))
+
     def to_json(self):
         return{
             "fName": self.fName,
@@ -115,8 +146,21 @@ class Account(Base):
     def __repr__(self):
         return f"<Account(userId={self.userID})>"
     
+class Department(Base):
+    __tablename__ = 'Department'
+    departmentID = Column(Integer, primary_key=True)
+    departmentName = Column(String)
+
+    def to_json(self):
+        return {
+            "departmentID": self.departmentID,
+            "departmentName": self.departmentName
+        }
+    
+    def __repr__(self):
+        return f"<Department(departmentID={self.departmentID})>"
+
 engine = create_engine('sqlite:///DICEapp.db')
 Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
 session = Session()
-
