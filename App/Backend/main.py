@@ -1,9 +1,12 @@
-from flask import Flask, render_template, request, redirect, url_for, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash
+from forms import LoginForm, RegistrationForm
+from werkzeug.security import check_password_hash, generate_password_hash
 from models import session, Inventory, Request, Account
 from flask_cors import CORS
 from flask import flash
 
 app = Flask(__name__, template_folder="../Pages", static_folder="../Static")
+app.config['SECRET_KEY'] = 'need_to_change_this_later_secret_key'
 CORS(app)
 
 #view dashboard
@@ -13,6 +16,67 @@ def dashboard():
     requests = session.query(Request).all()
     return render_template("dashboard.html", items=items, requests=requests)
 
+with app.app_context():
+    existing = session.query(Account).filter_by(userName='testuser').first()
+    if not existing:
+        test_user = Account(
+            fName='Test',
+            lName='User',
+            userName='testuser',
+            password_hash=generate_password_hash('password123'),
+            accountType='user'
+        )
+        session.add(test_user)
+        session.commit()
+  
+@app.route('/', methods=['GET', 'POST'])
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    form = LoginForm()
+    if form.validate_on_submit():
+        username = form.username.data
+        password = form.password.data
+
+        user = session.query(Account).filter_by(userName=username).first()
+
+        if user is None:
+            flash('Invalid username')
+            return redirect(url_for('login'))
+
+        if not check_password_hash(user.password_hash, password):
+            flash('Invalid password')
+            return redirect(url_for('login'))
+
+        flash(f'Welcome, {user.fName}!')
+        return redirect(url_for('inventory'))
+
+    return render_template('login.html', form=form)
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        # Check if username is already taken or valid
+        existing = session.query(Account).filter_by(userName=form.username.data).first()
+        if existing:
+            flash('Username already taken. Please try again.')
+            return redirect(url_for('register'))
+
+        # Create new account
+        new_user = Account(
+            fName=form.first_name.data,
+            lName=form.last_name.data,
+            userName=form.username.data,
+            password_hash=generate_password_hash(form.password.data),
+            accountType='user'
+        )
+        session.add(new_user)
+        session.commit()
+
+        flash('Account created! Please log in.')
+        return redirect(url_for('login'))
+
+    return render_template('register.html', form=form)
 
 #view inventory
 @app.route('/inventory')

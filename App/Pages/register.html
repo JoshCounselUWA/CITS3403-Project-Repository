@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - DICE</title>
-    <link rel="stylesheet" href="../Static/output.css">
-    <script src="../Static/script.js" defer></script>
+    <title>Register - DICE</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <style>
+        /* Register page specific styles - to be moved to shared CSS later */
         .login-wrapper {
             position: absolute;
             top: 50%;
@@ -56,10 +55,6 @@
             border-color: #1F5FBF;
         }
 
-        .login-wrapper input[type="checkbox"] {
-            margin-right: 0.5rem;
-        }
-
         .login-wrapper input[type="submit"] {
             width: 100%;
             height: 45px;
@@ -101,8 +96,7 @@
             font-size: 13px;
             text-align: center;
         }
-    </style>    <link rel="icon" type="image/x-icon" href="../Static/DICE_favicon.png">
-
+    </style>
 </head>
 <body>
 
@@ -111,7 +105,7 @@
     </div>
 
     <div class="login-wrapper">
-        <h2>Login</h2>
+        <h2>Register</h2>
 
         {% with messages = get_flashed_messages() %}
             {% if messages %}
@@ -123,8 +117,24 @@
             {% endif %}
         {% endwith %}
 
-        <form name="login" method="post" action="">
-            <!-- {{ form.hidden_tag() }}  ---Security Feature   -->
+        <form name="register" method="post" action="">
+            {{ form.hidden_tag() }}
+
+            <p>
+                {{ form.first_name.label }}<br>
+                {{ form.first_name(size=20) }}
+                {% for error in form.first_name.errors %}
+                    <span style="color:red;">[{{ error }}]</span>
+                {% endfor %}
+            </p>
+
+            <p>
+                {{ form.last_name.label }}<br>
+                {{ form.last_name(size=20) }}
+                {% for error in form.last_name.errors %}
+                    <span style="color:red;">[{{ error }}]</span>
+                {% endfor %}
+            </p>
 
             <p>
                 {{ form.username.label }}<br>
@@ -142,11 +152,18 @@
                 {% endfor %}
             </p>
 
-            <p>{{ form.remember_me() }} {{ form.remember_me.label }}</p>
+            <p>
+                {{ form.confirm_password.label }}<br>
+                {{ form.confirm_password(size=20) }}
+                {% for error in form.confirm_password.errors %}
+                    <span style="color:red;">[{{ error }}]</span>
+                {% endfor %}
+            </p>
+
             <p>{{ form.submit() }}</p>
         </form>
 
-        <p>Don't have an account? <a href="{{ url_for('register') }}">Register here</a></p>
+        <p>Already have an account? <a href="{{ url_for('login') }}">Log in</a></p>
     </div>
 
 </body>
