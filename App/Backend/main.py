@@ -6,6 +6,7 @@ from flask_cors import CORS
 from flask import flash
 
 app = Flask(__name__, template_folder="../Pages", static_folder="../Static")
+app.config['SECRET_KEY'] = 'need_to_change_this_later_secret_key'
 CORS(app)
 
 #view dashboard
