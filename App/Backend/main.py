@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from forms import LoginForm, RegistrationForm
 from werkzeug.security import check_password_hash, generate_password_hash
 from models import session, Inventory, Request, Account
@@ -208,72 +208,102 @@ def update_request(request_id):
 
     return redirect(url_for('requests_page'))
 
+#approve
+@app.route('/requests/approve/<int:request_id>', methods=['POST'])
+def approve_request(request_id):
+    req = session.query(Request).get(request_id)
+
+    if not req:
+        flash('Request not found', 'error')
+        return redirect(url_for('requests_page'))
+    
+    from models import Status
+    req.status = Status.approved
+    session.commit()
+
+    return redirect(url_for('requests_page'))
+
+#decline
+@app.route('/requests/decline/<int:request_id>', methods=['POST'])
+def decline_request(request_id):
+    req = session.query(Request).get(request_id)
+
+    if not req:
+        flash('Request not found', 'error')
+        return redirect(url_for('requests_page'))
+    
+    from models import Status
+    req.status = Status.rejected
+    session.commit()
+    
+    return redirect(url_for('requests_page'))
+
 #late return
 @app.route("/requests/overdue")
 def get_overdue_requests():
     from datetime import datetime
     now = datetime.now()
-
+    from models import Status
     overdue_requests = session.query(Request).filter(
         Request.returnDate < now,
-        Request.status != "returned"
+        Request.status != Status.returned
     ).all()
 
-    return jsonify([r.to_dict() for r in overdue_requests])
+    return jsonify([r.to_json() for r in overdue_requests])
 
 #upcoming booking
 @app.route("/requests/future")
 def get_future_requests():
     from datetime import datetime
     now = datetime.now()
-
+    from models import Status
     requests = session.query(Request).filter(
         Request.eventDateStart >= now,
-        Request.status == "approved"
+        Request.status == Status.approved
     ).all()
 
-    return jsonify([r.to_dict() for r in requests])
+    return jsonify([r.to_json() for r in requests])
 
 #current loans
 @app.route("/requests/current")
 def get_current_requests():
     from datetime import datetime
     now = datetime.now()
-
+    from models import Status
     current_requests = session.query(Request).filter(
         Request.eventDateStart <= now,
         Request.returnDate >= now,
-        Request.status == "loaned"
+        Request.status == Status.loaned
     ).all()
 
-    return jsonify([r.to_dict() for r in current_requests])
+    return jsonify([r.to_json() for r in current_requests])
 
-#calander
+#calender
 @app.route("/requests/calendar")
 def get_calendar_events():
     from datetime import datetime
     now = datetime.now()
-
+    from models import Status
     future = session.query(Request).filter(
         Request.eventDateStart >= now,
-        Request.status == "approved"
+        Request.status == Status.approved
     ).all()
 
     current = session.query(Request).filter(
         Request.eventDateStart <= now,
         Request.returnDate >= now,
-        Request.status == "loaned"
+        Request.status == Status.loaned
     ).all()
 
     overdue = session.query(Request).filter(
         Request.returnDate < now,
-        Request.status != "returned"
+        Request.status != Status.returned
     ).all()
 
     return jsonify({
-        "future": [r.to_dict() for r in future],
-        "current": [r.to_dict() for r in current],
-        "overdue": [r.to_dict() for r in overdue]
+        "future": [r.to_json() for r in future],
+        "current": [r.to_json() for r in current],
+        "overdue": [r.to_json() for r in overdue]
     })
 
 if __name__ == "__main__":
