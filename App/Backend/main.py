@@ -208,6 +208,36 @@ def update_request(request_id):
 
     return redirect(url_for('requests_page'))
 
+#approve
+@app.route('/requests/approve/<int:request_id>', methods=['POST'])
+def approve_request(request_id):
+    req = session.query(Request).get(request_id)
+
+    if not req:
+        flash('Request not found', 'error')
+        return redirect(url_for('requests_page'))
+    
+    from models import Status
+    req.status = Status.approved
+    session.commit()
+
+    return redirect(url_for('requests_page'))
+
+#decline
+@app.route('/requests/decline/<int:request_id>', methods=['POST'])
+def decline_request(request_id):
+    req = session.query(Request).get(request_id)
+
+    if not req:
+        flash('Request not found', 'error')
+        return redirect(url_for('requests_page'))
+    
+    from models import Status
+    req.status = Status.rejected
+    session.commit()
+    
+    return redirect(url_for('requests_page'))
+
 #late return
 @app.route("/requests/overdue")
 def get_overdue_requests():
@@ -248,7 +278,7 @@ def get_current_requests():
 
     return jsonify([r.to_json() for r in current_requests])
 
-#calander
+#calender
 @app.route("/requests/calendar")
 def get_calendar_events():
     from datetime import datetime
