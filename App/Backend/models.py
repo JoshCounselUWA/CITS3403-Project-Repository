@@ -33,7 +33,7 @@ class Status(enum.Enum):
     approved = "approved"
     rejected = "rejected"
     waiting = "waiting"
-    returnded = "returned"
+    returned = "returned"
     loaned = "loaned"
 
 class Request(Base):
@@ -57,7 +57,7 @@ class Request(Base):
 
     def to_json(self):
         return {
-            "requestID": self.requesterID,
+            "requestID": self.requestID,
             "requestTitle": self.requestTitle,
             "status": self.status,
             "requestJustification": self.requestJustification,
