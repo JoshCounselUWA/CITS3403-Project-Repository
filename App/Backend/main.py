@@ -1,4 +1,5 @@
 import json
+from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from forms import LoginForm, RegistrationForm
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -9,6 +10,11 @@ from flask import flash
 app = Flask(__name__, template_folder="../Pages", static_folder="../Static")
 app.config['SECRET_KEY'] = 'need_to_change_this_later_secret_key'
 CORS(app)
+
+def parse_datetime(value):
+    if not value:
+        return None
+    return datetime.strptime(value, "%Y-%m-%dT%H:%M")
 
 #view dashboard
 @app.route('/dashboard')
@@ -158,9 +164,9 @@ def add_request():
     new_request = Request(
         requestTitle=request.form['requestTitle'],
         requestJustification=request.form['requestJustification'],
-        eventDateStart=request.form.get('eventDateStart') or None,
-        eventDateEnd=request.form.get('eventDateEnd') or None,
-        returnDate=request.form.get('returnDate') or None,
+        eventDateStart=parse_datetime(request.form.get('eventDateStart')),
+        eventDateEnd=parse_datetime(request.form.get('eventDateEnd')),
+        returnDate=parse_datetime(request.form.get('returnDate')),
         requesterID=request.form['requesterID'],
         departmentID=request.form['departmentID']
     )
@@ -238,11 +244,11 @@ def update_request(request_id):
     if 'status' in request.form:
         req.status = request.form['status']
     if 'eventDateStart' in request.form:
-        req.eventDateStart = request.form.get('eventDateStart') or None
+        req.eventDateStart = parse_datetime(request.form.get('eventDateStart'))
     if 'eventDateEnd' in request.form:
-        req.eventDateEnd = request.form.get('eventDateEnd') or None
+        req.eventDateEnd = parse_datetime(request.form.get('eventDateEnd'))
     if 'returnDate' in request.form:
-        req.returnDate = request.form.get('returnDate') or None
+        req.returnDate = parse_datetime(request.form.get('returnDate'))
     if 'overdue' in request.form:
         req.overdue = request.form['overdue']
     if 'approverID' in request.form:
