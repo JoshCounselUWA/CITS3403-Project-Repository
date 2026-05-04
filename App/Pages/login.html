@@ -124,7 +124,7 @@
         {% endwith %}
 
         <form name="login" method="post" action="">
-            <!-- {{ form.hidden_tag() }}  ---Security Feature   -->
+            {{ form.hidden_tag() }} 
 
             <p>
                 {{ form.username.label }}<br>
