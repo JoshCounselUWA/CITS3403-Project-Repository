@@ -193,6 +193,29 @@
         margin-bottom: 10px;
         min-height: 24px;
     }
+
+    .modal input[type="datetime-local"] {
+        color: rgba(255,255,255,0.45);
+    }
+
+    .modal input[type="datetime-local"].has-value {
+        color: white;
+    }
+
+    .modal input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+        filter: invert(1);
+        opacity: 1;
+        cursor: pointer;
+    }
+
+    .modal label {
+        display: block;
+        color: rgba(255,255,255,0.55);
+        font-size: 0.8rem;
+        margin-bottom: 4px;
+    }
+
+    
 </style>
 
 </head>
@@ -223,7 +246,10 @@
                 <th class="sortable" onclick="sortRequestsTable(2)">Title <span class="arrow">↕</span></th>
                 <th class="sortable" onclick="sortRequestsTable(3)">Justification <span class="arrow">↕</span></th>
                 <th class="sortable" onclick="sortRequestsTable(4)">Status <span class="arrow">↕</span></th>
-                <th class="sortable" onclick="sortRequestsTable(5)">Requester <span class="arrow">↕</span></th>
+                <th class="sortable" onclick="sortRequestsTable(5)">Request Date <span class="arrow">↕</span></th>
+                <th class="sortable" onclick="sortRequestsTable(6)">Event Date <span class="arrow">↕</span></th>
+                <th class="sortable" onclick="sortRequestsTable(7)">Return Date <span class="arrow">↕</span></th>
+                <th class="sortable" onclick="sortRequestsTable(8)">Requester <span class="arrow">↕</span></th>
                 <th class="actions">Manage</th>
             </tr>
         </thead>
@@ -242,10 +268,36 @@
                 <td>{{ r.requestTitle }}</td>
                 <td>{{ r.requestJustification }}</td>
                 <td>{{ r.status.value }}</td>
+
+                <td>
+                    {% if r.eventDateStart %}
+                        {{ r.eventDateStart.strftime('%Y-%m-%d %H:%M') }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+
+                <td>
+                    {% if r.eventDateEnd %}
+                        {{ r.eventDateEnd.strftime('%Y-%m-%d %H:%M') }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+
+                <td>
+                    {% if r.returnDate %}
+                        {{ r.returnDate.strftime('%Y-%m-%d %H:%M') }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+
                 <td>{{ r.requesterID }}</td>
 
+
                 <td class="actions">
-                    <button onclick="openUpdateModal('{{ r.requestID }}','{{ r.requestTitle|escape }}','{{ r.requestJustification|escape }}')" class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">Update</button>
+                    <button onclick="openUpdateModal('{{ r.requestID }}', `{{ r.requestTitle|escape }}`, `{{ r.requestJustification|escape }}`, `{{ r.eventDateStart.strftime('%Y-%m-%dT%H:%M') if r.eventDateStart else '' }}`, `{{ r.eventDateEnd.strftime('%Y-%m-%dT%H:%M') if r.eventDateEnd else '' }}`, `{{ r.returnDate.strftime('%Y-%m-%dT%H:%M') if r.returnDate else '' }}`)" class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">Update</button>
 
                     <a href="/requests/delete/{{ r.requestID }}">
                         <button class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">Delete</button>
@@ -264,7 +316,13 @@
         <input type="hidden" name="requestID" id="requestID">
         <input name="requestTitle" id="requestTitle" placeholder="Request Title" required>
         <textarea name="requestJustification" id="requestJustification" placeholder="Justification"></textarea>
+        <input type="hidden" name="eventDateStart" id="eventDateStart">
+        <label for="eventDateEnd">Event Date</label>
+        <input name="eventDateEnd" id="eventDateEnd" type="datetime-local">
+        <label for="returnDate">Return Date</label>
+        <input name="returnDate" id="returnDate" type="datetime-local">
         <input name="requesterID" placeholder="Requester ID" required>
+        <input name="departmentID" id="departmentID" type="number" placeholder="Department ID" required>
 
         <!-- Item Picker -->
         <hr class="item-picker-divider">

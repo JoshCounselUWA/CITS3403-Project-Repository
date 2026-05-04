@@ -30,11 +30,11 @@ class Inventory(Base):
         return f"<Inventory(itemName={self.itemName},quantity={self.itemquantity})>"
     
 class Status(enum.Enum):
-    approved = "approved"
-    rejected = "rejected"
-    waiting = "waiting"
-    returned = "returned"
-    loaned = "loaned"
+    approved = "Approved"
+    rejected = "Rejected"
+    waiting = "Waiting"
+    returned = "Returned"
+    loaned = "Loaned"
 
 class Request(Base):
     __tablename__ = 'requests'
