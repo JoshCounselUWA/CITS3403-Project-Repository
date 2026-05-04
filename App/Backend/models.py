@@ -16,7 +16,7 @@ class Inventory(Base):
     itemphoto = Column(String) #optional I guess, for url or file path of course
 
     departmentID = Column(Integer, ForeignKey('Department.departmentID'))
-
+    department = relationship("Department",back_populates='inventory')
     def to_json(self):
         return {
             "itemID": self.itemID,
@@ -33,7 +33,7 @@ class Status(enum.Enum):
     approved = "approved"
     rejected = "rejected"
     waiting = "waiting"
-    returnded = "returned"
+    returned = "returned"
     loaned = "loaned"
 
 class Request(Base):
@@ -52,14 +52,15 @@ class Request(Base):
     approverID = Column(Integer, ForeignKey('Account.userID')) #foreign user department head
 
     departmentID = Column(Integer, ForeignKey('Department.departmentID'))
+    department = relationship("Department", back_populates="requests")
 
     items = relationship("RequestItems", back_populates="request", cascade="all, delete-orphan")
 
     def to_json(self):
         return {
-            "requestID": self.requesterID,
+            "requestID": self.requestID,
             "requestTitle": self.requestTitle,
-            "status": self.status,
+            "status": self.status.value,
             "requestJustification": self.requestJustification,
             "eventDateStart": self.eventDateStart,
             "eventDateEnd": self.eventDateEnd,
@@ -132,6 +133,7 @@ class Account(Base):
     accountType = Column(String,nullable=False)
 
     departmentID = Column(Integer, ForeignKey('Department.departmentID'))
+    department = relationship("Department", back_populates="accounts")
 
     def to_json(self):
         return{
@@ -150,6 +152,10 @@ class Department(Base):
     __tablename__ = 'Department'
     departmentID = Column(Integer, primary_key=True)
     departmentName = Column(String)
+
+    inventory = relationship("Inventory", back_populates="department")
+    accounts = relationship("Account", back_populates="department")
+    requests = relationship("Request", back_populates="department")
 
     def to_json(self):
         return {
