@@ -32,20 +32,30 @@ function openAddModal() {
     document.getElementById("modalSubmitBtn").innerText = "Submit";
     document.getElementById("requestForm").action = "/requests/add";
     document.getElementById("requestForm").reset();
+    updateDateInputColours();
     resetItemPicker();
     document.getElementById("modal").style.display = "flex";
 }
 
-function openUpdateModal(id, title, justification) {
+function openUpdateModal(id, title, justification, eventDateStart, eventDateEnd, returnDate) {
     document.getElementById("modalTitle").innerText = "Update Request";
     document.getElementById("modalSubmitBtn").innerText = "Update";
     document.getElementById("requestForm").action = "/requests/" + id;
     document.getElementById("requestID").value = id;
     document.getElementById("requestTitle").value = title;
     document.getElementById("requestJustification").value = justification;
+
+    const eventDateStartField = document.getElementById("eventDateStart");
+    const eventDateEndField = document.getElementById("eventDateEnd");
+    const returnDateField = document.getElementById("returnDate");
+
+    if (eventDateStartField) eventDateStartField.value = eventDateStart || "";
+    if (eventDateEndField) eventDateEndField.value = eventDateEnd || "";
+    if (returnDateField) returnDateField.value = returnDate || "";
+    updateDateInputColours();
+
     resetItemPicker();
 
-    // load existing items for this request
     fetch('/requests/items/' + id)
         .then(r => r.json())
         .then(data => {
@@ -305,4 +315,44 @@ function closeItemModal() {
 // load inventory items into memory if on the requests page
 if (document.getElementById("requestsTable")) {
     loadInventoryItems();
+}
+
+
+function updateDateInputColours() {
+    document.querySelectorAll('input[type="datetime-local"]').forEach(input => {
+        if (input.value) {
+            input.classList.add("has-value");
+        } else {
+            input.classList.remove("has-value");
+        }
+    });
+}
+
+document.addEventListener("input", function (e) {
+    if (e.target.matches('input[type="datetime-local"]')) {
+        updateDateInputColours();
+    }
+});
+
+document.addEventListener("DOMContentLoaded", updateDateInputColours);
+
+
+function getCurrentDateTimeLocal() {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    return now.toISOString().slice(0, 16);
+}
+
+const requestForm = document.getElementById("requestForm");
+
+if (requestForm) {
+    requestForm.addEventListener("submit", function () {
+        const eventDateStartField = document.getElementById("eventDateStart");
+
+        if (eventDateStartField && !eventDateStartField.value) {
+            eventDateStartField.value = getCurrentDateTimeLocal();
+        }
+
+        updateDateInputColours();
+    });
 }

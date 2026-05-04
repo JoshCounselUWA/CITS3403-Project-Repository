@@ -1,13 +1,20 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+import json
+from datetime import datetime
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session as flask_session
 from forms import LoginForm, RegistrationForm
 from werkzeug.security import check_password_hash, generate_password_hash
-from models import session, Inventory, Request, Account
+from models import session, Inventory, Request, Account, RequestItems
 from flask_cors import CORS
 from flask import flash
 
 app = Flask(__name__, template_folder="../Pages", static_folder="../Static")
 app.config['SECRET_KEY'] = 'need_to_change_this_later_secret_key'
 CORS(app)
+
+def parse_datetime(value):
+    if not value:
+        return None
+    return datetime.strptime(value, "%Y-%m-%dT%H:%M")
 
 #view dashboard
 @app.route('/dashboard')
@@ -84,6 +91,13 @@ def inventory():
     items = session.query(Inventory).all()
     return render_template("inventory.html", items=items)
 
+@app.route('/inventory/json')
+def inventory_json():
+    items = session.query(Inventory).all()
+    return jsonify({
+        "items": [item.to_json() for item in items]
+    })
+
 #add inventory
 @app.route('/inventory/add', methods=['POST'])
 def add_inventory():
@@ -150,9 +164,9 @@ def add_request():
     new_request = Request(
         requestTitle=request.form['requestTitle'],
         requestJustification=request.form['requestJustification'],
-        eventDateStart=request.form.get('eventDateStart'),
-        eventDateEnd=request.form.get('eventDateEnd'),
-        returnDate=request.form.get('returnDate'),
+        eventDateStart=parse_datetime(request.form.get('eventDateStart')),
+        eventDateEnd=parse_datetime(request.form.get('eventDateEnd')),
+        returnDate=parse_datetime(request.form.get('returnDate')),
         requesterID=request.form['requesterID'],
         departmentID=request.form['departmentID']
     )
@@ -160,7 +174,45 @@ def add_request():
     session.add(new_request)
     session.commit()
 
+    items_json = request.form.get('itemsJSON', '[]')
+
+    try:
+        selected_items = json.loads(items_json)
+    except json.JSONDecodeError:
+        selected_items = []
+
+    for item in selected_items:
+        request_item = RequestItems(
+            requestID=new_request.requestID,
+            itemID=item['itemID'],
+            quantity=item['quantity']
+        )
+        session.add(request_item)
+
+    session.commit()
+
     return redirect(url_for('requests_page'))
+
+@app.route('/requests/items/<int:request_id>')
+def get_request_items(request_id):
+    request_items = session.query(RequestItems).filter_by(requestID=request_id).all()
+
+    items = []
+
+    for request_item in request_items:
+        inventory_item = session.query(Inventory).get(request_item.itemID)
+
+        if inventory_item:
+            items.append({
+                "itemID": inventory_item.itemID,
+                "itemName": inventory_item.itemName,
+                "itemquantity": inventory_item.itemquantity,
+                "quantity": request_item.quantity
+            })
+
+    return jsonify({
+        "items": items
+    })
 
 #delete request
 @app.route('/requests/delete/<int:request_id>')
@@ -182,34 +234,54 @@ def update_request(request_id):
     req = session.query(Request).get(request_id)
 
     if not req:
-        flash('Requset not found', 'error')
+        flash('Request not found', 'error')
         return redirect(url_for('requests_page'))
-    else:
-        if 'requestTitle' in request.form:
-            req.requestTitle = request.form['requestTitle']
-        if 'requestJustification' in request.form:
-            req.requestJustification = request.form['requestJustification']
-        if 'status' in request.form:
-            req.status = request.form['status']
-        if 'eventDateStart' in request.form:
-            req.eventDateStart = request.form['eventDateStart']
-        if 'eventDateEnd' in request.form:
-            req.eventDateEnd = request.form['eventDateEnd']
-        if 'returnDate' in request.form:
-            req.returnDate = request.form['returnDate']
-        if 'overdue' in request.form:
-            req.overdue = request.form['overdue']
-        if 'approverID' in request.form:
-            req.approverID = request.form['approverID']
-        if 'departmentID' in request.form:
-            req.departmentID = request.form['departmentID']
 
-        session.commit()
+    if 'requestTitle' in request.form:
+        req.requestTitle = request.form['requestTitle']
+    if 'requestJustification' in request.form:
+        req.requestJustification = request.form['requestJustification']
+    if 'status' in request.form:
+        req.status = request.form['status']
+    if 'eventDateStart' in request.form:
+        req.eventDateStart = parse_datetime(request.form.get('eventDateStart'))
+    if 'eventDateEnd' in request.form:
+        req.eventDateEnd = parse_datetime(request.form.get('eventDateEnd'))
+    if 'returnDate' in request.form:
+        req.returnDate = parse_datetime(request.form.get('returnDate'))
+    if 'overdue' in request.form:
+        req.overdue = request.form['overdue']
+    if 'approverID' in request.form:
+        req.approverID = request.form['approverID']
+    if 'departmentID' in request.form:
+        req.departmentID = request.form['departmentID']
+
+    old_items = session.query(RequestItems).filter_by(requestID=request_id).all()
+
+    for old_item in old_items:
+        session.delete(old_item)
+
+    items_json = request.form.get('itemsJSON', '[]')
+
+    try:
+        selected_items = json.loads(items_json)
+    except json.JSONDecodeError:
+        selected_items = []
+
+    for item in selected_items:
+        request_item = RequestItems(
+            requestID=request_id,
+            itemID=item['itemID'],
+            quantity=item['quantity']
+        )
+        session.add(request_item)
+
+    session.commit()
 
     return redirect(url_for('requests_page'))
 
 #approve
-@app.route('/requests/approve/<int:request_id>', methods=['POST'])
+@app.route('/requests/approve/<int:request_id>', methods=['GET', 'POST'])
 def approve_request(request_id):
     req = session.query(Request).get(request_id)
 
@@ -224,7 +296,7 @@ def approve_request(request_id):
     return redirect(url_for('requests_page'))
 
 #decline
-@app.route('/requests/decline/<int:request_id>', methods=['POST'])
+@app.route('/requests/decline/<int:request_id>', methods=['GET', 'POST'])
 def decline_request(request_id):
     req = session.query(Request).get(request_id)
 
