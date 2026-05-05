@@ -155,7 +155,7 @@ class Department(Base):
     departmentID = Column(Integer, primary_key=True)
     departmentName = Column(String)
 
-    inventory_items = relationship("Inventory", back_populates="department")
+    inventory = relationship("Inventory", back_populates="department")
     accounts = relationship("Account", back_populates="department")
     requests = relationship("Request", back_populates="department")
 
