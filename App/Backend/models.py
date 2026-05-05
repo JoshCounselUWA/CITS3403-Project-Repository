@@ -50,6 +50,8 @@ class Request(Base):
     overdue = Column(Boolean, default=False)
     requesterID = Column(Integer, ForeignKey('Account.userID'), nullable=False) #foreign user
     approverID = Column(Integer, ForeignKey('Account.userID')) #foreign user department head
+    requester = relationship("Account", foreign_keys=[requesterID], back_populates="requests_made")
+    approver = relationship("Account", foreign_keys=[approverID], back_populates="requests_reviewed")
 
     departmentID = Column(Integer, ForeignKey('Department.departmentID'))
     department = relationship("Department", back_populates="requests")
