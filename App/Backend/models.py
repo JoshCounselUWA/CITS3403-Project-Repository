@@ -190,22 +190,10 @@ class Account(UserMixin, Base):
     def __repr__(self):
         return f"<Account(userId={self.userID})>"
     
-    requests_made = relationship(
-        "Request",
-        foreign_keys="Request.requesterID",
-        back_populates="requester"
-    )
-
-    requests_reviewed = relationship(
-        "Request",
-        foreign_keys="Request.approverID",
-        back_populates="approver"
-    )
-    
 class Membership(Base):
     __tablename__ = 'Membership'
     id = Column(Integer, primary_key=True)
-    userID = Column(Integer, ForeignKey(Account.userID), nullable=False)
+    userID = Column(Integer, ForeignKey('Account.userID'), nullable=False)
     departmentID = Column(Integer, ForeignKey('Department.departmentID'), nullable=False)
     role = Column(Enum(MembershipRole), nullable=False)
     status = Column(Enum(MembershipStatus), nullable=False, default=MembershipStatus.pending)
