@@ -161,20 +161,41 @@ function filterItemDropdown() {
         return;
     }
 
-    dropdown.innerHTML = matches.map(i => `
-        <div onclick="pickItem(${i.itemID}, '${i.itemName.replace(/'/g, "\\'")}', ${i.itemquantity})"
-             style="padding:8px 10px; cursor:pointer; color:white; border-bottom:1px solid rgba(255,255,255,0.07);"
-             onmouseover="this.style.background='rgba(56,189,248,0.1)'"
-             onmouseout="this.style.background='transparent'">
+    dropdown.innerHTML = matches.map(i => {
+    const available = Number(i.itemquantity);
+    const isOutOfStock = available <= 0;
+    const safeName = i.itemName.replace(/'/g, "\\'");
+
+    return `
+        <div
+            ${isOutOfStock ? "" : `onclick="pickItem(${i.itemID}, '${safeName}', ${available})"`}
+            style="
+                padding:8px 10px;
+                cursor:${isOutOfStock ? "not-allowed" : "pointer"};
+                color:${isOutOfStock ? "rgba(255,255,255,0.35)" : "white"};
+                border-bottom:1px solid rgba(255,255,255,0.07);
+            "
+            ${isOutOfStock ? "" : "onmouseover=\"this.style.background='rgba(56,189,248,0.1)'\""}
+            ${isOutOfStock ? "" : "onmouseout=\"this.style.background='transparent'\""}
+        >
             ${i.itemName}
-            <span style="opacity:0.5; font-size:0.8rem;">(${i.itemquantity} available)</span>
+            <span style="opacity:0.5; font-size:0.8rem;">
+                ${isOutOfStock ? "(Out of stock)" : `(${available} available)`}
+            </span>
         </div>
-    `).join('');
+    `;
+}).join('');
 
     dropdown.style.display = "block";
 }
 
 function pickItem(id, name, available) {
+    available = Number(available);
+
+    if (available <= 0) {
+        return;
+    }
+
     pickedItems[id] = { name, quantity: 1, available };
     document.getElementById("itemSearch").value = "";
     document.getElementById("itemDropdown").style.display = "none";
