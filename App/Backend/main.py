@@ -65,9 +65,14 @@ def login():
         flash(f'Welcome, {user.fName}!')
         return redirect(url_for('dashboard'))
     
-    
-
     return render_template('login.html', form=form)
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    flash('You have been logged out succesfully')
+    return redirect(url_for('login'))
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
