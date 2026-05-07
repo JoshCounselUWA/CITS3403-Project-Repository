@@ -142,7 +142,6 @@ class Account(UserMixin, Base):
     userID = Column(Integer, primary_key=True)
     userName = Column(String, unique=True, nullable=False)
     password_hash = Column(String, nullable=False) 
-    accountType = Column(String,nullable=False)
 
     # departmentID = Column(Integer, ForeignKey('Department.departmentID'))
     # department = relationship("Department", back_populates="accounts")
@@ -165,24 +164,38 @@ class Account(UserMixin, Base):
             "lName": self.lName,
             "userID": self.userID,
             "userName": self.userName,
-            "password_hash": self.password_hash,
-            "accountType": self.accountType
         }
     
     def get_id(self):
         return str(self.userID)
-
+    
+    def is_admin_of(self, depID):
+        for m in self.memberships:
+            if (m.departmentID == depID and m.role == MembershipRole.admin and m.status == MembershipStatus.accepted):
+                return True
+        return False
+    
+    def is_member_of(self, depID):
+        for m in self.memberships:
+            if (m.departmentID == depID and m.status == MembershipStatus.accepted):
+                return True
+        return False
+    
+    def active_departments(self):
+        return [m.department for m in self.memberships
+            if m.status == MembershipStatus.accepted]
+                
     def __repr__(self):
         return f"<Account(userId={self.userID})>"
     
 class Membership(Base):
     __tablename__ = 'Membership'
     id = Column(Integer, primary_key=True)
-    userID = Column(Integer(ForeignKey(Account.userID)), nullable=False)
+    userID = Column(Integer, ForeignKey(Account.userID), nullable=False)
     departmentID = Column(Integer, ForeignKey('Department.departmentID'), nullable=False)
     role = Column(Enum(MembershipRole), nullable=False)
     status = Column(Enum(MembershipStatus), nullable=False, default=MembershipStatus.pending)
-    createdAt = Column(DateTime, default=datetime.time.time())
+    createdAt = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("Account", back_populates="memberships")
     department = relationship("Department", back_populates="memberships")
