@@ -3,7 +3,7 @@ from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session as flask_session
 from forms import LoginForm, RegistrationForm
 from werkzeug.security import check_password_hash, generate_password_hash
-from models import session, Inventory, Request, Account, RequestItems, Status, Department
+from models import session, Inventory, Request, Account, RequestItems, Status, Department, Branding
 from flask_cors import CORS
 from flask import flash
 
@@ -34,6 +34,13 @@ with app.app_context():
             accountType='user'
         )
         session.add(test_user)
+        session.commit()
+
+    # ensure one branding row exists
+    branding = session.query(Branding).first()
+    if not branding:
+        branding = Branding(logoURL=None)
+        session.add(branding)
         session.commit()
   
 @app.route('/', methods=['GET', 'POST'])
@@ -509,11 +516,20 @@ def update_user(user_id):
 
 @app.route('/appsettings/branding', methods=['POST'])
 def update_branding():
-    url = request.form['logoURL']
+    url = request.form['logoURL'].strip()
 
-    flask_session['logoURL'] = url
+    branding = session.query(Branding).first()
+
+    if branding:
+        branding.logoURL = url if url else None
+
+    session.commit()
 
     return redirect(url_for('appsettings'))
+
+@app.context_processor
+def inject_branding():
+    return dict(branding=session.query(Branding).first())
 
 @app.route('/appsettings/departments/update/<int:dept_id>', methods=['POST'])
 def update_department(dept_id):
