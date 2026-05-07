@@ -25,6 +25,7 @@ def parse_datetime(value):
 
 #view dashboard
 @app.route('/dashboard')
+@login_required
 def dashboard():
     items = session.query(Inventory).all()
     requests = session.query(Request).all()
@@ -102,11 +103,13 @@ def register():
 
 #view inventory
 @app.route('/inventory')
+@login_required
 def inventory():
     items = session.query(Inventory).all()
     return render_template("inventory.html", items=items)
 
 @app.route('/inventory/json')
+@login_required
 def inventory_json():
     items = session.query(Inventory).all()
     return jsonify({
@@ -115,6 +118,7 @@ def inventory_json():
 
 #add inventory
 @app.route('/inventory/add', methods=['POST'])
+@login_required
 def add_inventory():
     item = Inventory(
         itemName=request.form['itemName'],
@@ -131,6 +135,7 @@ def add_inventory():
 
 #delete inventory
 @app.route('/inventory/delete/<int:item_id>')
+@login_required
 def delete_inventory(item_id):
     item = session.query(Inventory).get(item_id)
 
@@ -145,6 +150,7 @@ def delete_inventory(item_id):
 
 #update inventory
 @app.route('/inventory/<int:item_id>', methods=['POST'])
+@login_required
 def update_inventory(item_id):
     item = session.query(Inventory).get(item_id)
 
@@ -169,12 +175,14 @@ def update_inventory(item_id):
 
 #view requests
 @app.route('/requests')
+@login_required
 def requests_page():
     requests = session.query(Request).all()
     return render_template("requests.html", requests=requests)
 
 #make request
 @app.route('/requests/add', methods=['POST'])
+@login_required
 def add_request():
     new_request = Request(
         requestTitle=request.form['requestTitle'],
@@ -209,6 +217,7 @@ def add_request():
     return redirect(url_for('requests_page'))
 
 @app.route('/requests/items/<int:request_id>')
+@login_required
 def get_request_items(request_id):
     request_items = session.query(RequestItems).filter_by(requestID=request_id).all()
 
@@ -231,6 +240,7 @@ def get_request_items(request_id):
 
 #delete request
 @app.route('/requests/delete/<int:request_id>')
+@login_required
 def delete_request(request_id):
     req = session.query(Request).get(request_id)
 
@@ -245,6 +255,7 @@ def delete_request(request_id):
 
 #update request
 @app.route('/requests/<int:request_id>', methods=['POST'])
+@login_required
 def update_request(request_id):
     req = session.query(Request).get(request_id)
 
@@ -297,6 +308,7 @@ def update_request(request_id):
 
 #approve
 @app.route('/requests/approve/<int:request_id>', methods=['GET', 'POST'])
+@login_required
 def approve_request(request_id):
     req = session.query(Request).get(request_id)
 
@@ -312,6 +324,7 @@ def approve_request(request_id):
 
 #decline
 @app.route('/requests/decline/<int:request_id>', methods=['GET', 'POST'])
+@login_required
 def decline_request(request_id):
     req = session.query(Request).get(request_id)
 
@@ -327,6 +340,7 @@ def decline_request(request_id):
 
 #late return
 @app.route("/requests/overdue")
+@login_required
 def get_overdue_requests():
     from datetime import datetime
     now = datetime.now()
@@ -340,6 +354,7 @@ def get_overdue_requests():
 
 #upcoming booking
 @app.route("/requests/future")
+@login_required
 def get_future_requests():
     from datetime import datetime
     now = datetime.now()
@@ -353,6 +368,7 @@ def get_future_requests():
 
 #current loans
 @app.route("/requests/current")
+@login_required
 def get_current_requests():
     from datetime import datetime
     now = datetime.now()
@@ -367,6 +383,7 @@ def get_current_requests():
 
 #calender
 @app.route("/requests/calendar")
+@login_required
 def get_calendar_events():
     from datetime import datetime
     now = datetime.now()
