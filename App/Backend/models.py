@@ -181,8 +181,15 @@ class Department(Base):
     
     def __repr__(self):
         return f"<Department(departmentID={self.departmentID})>"
+    
+class Branding(Base):
+    __tablename__ = "branding"
+
+    id = Column(Integer, primary_key=True)
+    logoURL = Column(String, nullable=True)
 
 engine = create_engine('sqlite:///DICEapp.db')
 Base.metadata.create_all(engine)
+
 Session = sessionmaker(bind=engine)
 session = Session()
