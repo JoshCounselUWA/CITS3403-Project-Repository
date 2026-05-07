@@ -6,10 +6,17 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from models import session, Inventory, Request, Account, RequestItems
 from flask_cors import CORS
 from flask import flash
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 
 app = Flask(__name__, template_folder="../Pages", static_folder="../Static")
 app.config['SECRET_KEY'] = 'need_to_change_this_later_secret_key'
 CORS(app)
+login = LoginManager(app)
+login.login_view = 'login'
+
+@login.user_loader
+def load_user(id):
+    return session.query(Account).get(int(id))
 
 def parse_datetime(value):
     if not value:
@@ -54,8 +61,11 @@ def login():
             flash('Invalid password')
             return redirect(url_for('login'))
 
+        login_user(user, remember=form.remember_me.data)
         flash(f'Welcome, {user.fName}!')
-        return redirect(url_for('inventory'))
+        return redirect(url_for('dashboard'))
+    
+    
 
     return render_template('login.html', form=form)
 
