@@ -8,6 +8,31 @@
     <script src="../Static/script.js" defer></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: #020617;
+            position: relative;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background-image: url("{{ url_for('static', filename='DICE.png') }}");
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: cover;
+            opacity: 0.15;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .topbar {
+            display: none;
+        }
+
         .login-wrapper {
             position: absolute;
             top: 50%;
@@ -22,6 +47,7 @@
             box-sizing: border-box;
             color: white;
             font-family: Verdana, Geneva, Tahoma, sans-serif;
+            z-index: 1;
         }
 
         .login-wrapper h2 {

@@ -142,6 +142,8 @@ class Account(UserMixin, Base):
     userID = Column(Integer, primary_key=True)
     userName = Column(String, unique=True, nullable=False)
     password_hash = Column(String, nullable=False) 
+    accountType = Column(String,nullable=False)
+    inviteAccepted = Column(Boolean, default=False)
 
     # departmentID = Column(Integer, ForeignKey('Department.departmentID'))
     # department = relationship("Department", back_populates="accounts")
@@ -188,6 +190,18 @@ class Account(UserMixin, Base):
     def __repr__(self):
         return f"<Account(userId={self.userID})>"
     
+    requests_made = relationship(
+        "Request",
+        foreign_keys="Request.requesterID",
+        back_populates="requester"
+    )
+
+    requests_reviewed = relationship(
+        "Request",
+        foreign_keys="Request.approverID",
+        back_populates="approver"
+    )
+    
 class Membership(Base):
     __tablename__ = 'Membership'
     id = Column(Integer, primary_key=True)
@@ -232,8 +246,15 @@ class Department(Base):
     
     def __repr__(self):
         return f"<Department(departmentID={self.departmentID})>"
+    
+class Branding(Base):
+    __tablename__ = "branding"
+
+    id = Column(Integer, primary_key=True)
+    logoURL = Column(String, nullable=True)
 
 engine = create_engine('sqlite:///DICEapp.db')
 Base.metadata.create_all(engine)
+
 Session = sessionmaker(bind=engine)
 session = Session()

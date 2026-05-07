@@ -222,15 +222,30 @@
 
 <body>
 
-<div class="fixed top-0 left-0 right-0 z-40 flex h-16 items-center gap-4 bg-sky-950 p-3 text-white">
-    <img src="../Static/DICE.png" class="logo h-20">
-    <h1 class="font-bold">Requests</h1>
+<!-- Header -->
+<div class="fixed top-0 left-0 right-0 z-40 flex h-16 items-center justify-between bg-sky-950 p-3 text-white">
+
+    <!-- LEFT: ALWAYS DICE -->
+    <div class="flex items-center gap-4">
+        <img src="../Static/DICE.png" class="logo h-20">
+        <h1 class="font-bold">App Settings</h1>
+    </div>
+
+    <!-- RIGHT: OPTIONAL BRANDING -->
+    <div class="flex items-center" style="position: absolute; right: 20px;">
+        {% if branding and branding.logoURL %}
+            <img src="{{ branding.logoURL }}" style="height: 40px; object-fit: contain;">
+        {% endif %}
+    </div>
+
 </div>
 
+<!-- Sidebar -->
 <div class="fixed top-16 bottom-0 left-0 w-64 flex flex-col gap-4 bg-slate-900 p-6 text-white">
     <button onclick="window.location.href='dashboard'" class="w-50 rounded-lg bg-sky-900 py-2 hover:bg-blue-800">Dashboard</button>
     <button onclick="window.location.href='requests'" class="w-50 rounded-lg bg-sky-900 py-2 hover:bg-blue-800">Requests</button>
     <button onclick="window.location.href='inventory'" class="w-50 rounded-lg bg-sky-900 py-2 hover:bg-blue-800">Inventory</button>
+    <button onclick="window.location.href='appsettings'" class="w-50 rounded-lg bg-sky-900 py-2 hover:bg-blue-800">App Settings</button>
 </div>
 
 <button onclick="openAddModal()" class="add-request-btn rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
@@ -267,7 +282,22 @@
 
                 <td>{{ r.requestTitle }}</td>
                 <td>{{ r.requestJustification }}</td>
-                <td>{{ r.status.value }}</td>
+                <td>
+                    {% set status = r.status.value|lower %}
+
+                    {% if status == 'approved' %}
+                        <span style="color:#22c55e;">Approved</span>
+
+                    {% elif status == 'rejected' %}
+                        <span style="color:#ef4444;">Declined</span>
+
+                    {% elif status == 'waiting' %}
+                        <span style="color:#facc15;">Waiting</span>
+
+                    {% else %}
+                        {{ r.status.value }}
+                    {% endif %}
+                </td>
 
                 <td>
                     {% if r.eventDateStart %}
