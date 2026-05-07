@@ -4,6 +4,7 @@ from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, DateT
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 from datetime import datetime
 import enum
+from flask_login import UserMixin
 
 Base = declarative_base()
 
@@ -125,7 +126,7 @@ class ItemList(Base):
 
     #def __repr__(self):
 
-class Account(Base):
+class Account(UserMixin, Base):
     __tablename__ = 'Account'
     fName = Column(String)
     lName = Column(String)
@@ -146,6 +147,9 @@ class Account(Base):
             "password_hash": self.password_hash,
             "accountType": self.accountType
         }
+    
+    def get_id(self):
+        return str(self.userID)
 
     def __repr__(self):
         return f"<Account(userId={self.userID})>"
