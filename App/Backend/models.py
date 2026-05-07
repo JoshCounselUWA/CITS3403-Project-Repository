@@ -133,6 +133,7 @@ class Account(Base):
     userName = Column(String, unique=True, nullable=False)
     password_hash = Column(String, nullable=False) 
     accountType = Column(String,nullable=False)
+    inviteAccepted = Column(Boolean, default=False)
 
     departmentID = Column(Integer, ForeignKey('Department.departmentID'))
     department = relationship("Department", back_populates="accounts")

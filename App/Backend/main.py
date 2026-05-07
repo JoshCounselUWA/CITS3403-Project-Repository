@@ -3,7 +3,7 @@ from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session as flask_session
 from forms import LoginForm, RegistrationForm
 from werkzeug.security import check_password_hash, generate_password_hash
-from models import session, Inventory, Request, Account, RequestItems, Status
+from models import session, Inventory, Request, Account, RequestItems, Status, Department
 from flask_cors import CORS
 from flask import flash
 
@@ -306,30 +306,39 @@ def update_request(request_id):
         flash('Request not found', 'error')
         return redirect(url_for('requests_page'))
 
+    # update fields
     if 'requestTitle' in request.form:
         req.requestTitle = request.form['requestTitle']
+
     if 'requestJustification' in request.form:
         req.requestJustification = request.form['requestJustification']
-    if 'status' in request.form:
-        req.status = request.form['status']
+
     if 'eventDateStart' in request.form:
         req.eventDateStart = parse_datetime(request.form.get('eventDateStart'))
+
     if 'eventDateEnd' in request.form:
         req.eventDateEnd = parse_datetime(request.form.get('eventDateEnd'))
+
     if 'returnDate' in request.form:
         req.returnDate = parse_datetime(request.form.get('returnDate'))
+
     if 'overdue' in request.form:
         req.overdue = request.form['overdue']
+
     if 'approverID' in request.form:
         req.approverID = request.form['approverID']
+
     if 'departmentID' in request.form:
         req.departmentID = request.form['departmentID']
 
-    old_items = session.query(RequestItems).filter_by(requestID=request_id).all()
+    from models import Status
+    req.status = Status.waiting
 
-    for old_item in old_items:
-        session.delete(old_item)
+    # delete old items
+    session.query(RequestItems).filter_by(requestID=request_id).delete()
 
+
+    # add updated items
     items_json = request.form.get('itemsJSON', '[]')
 
     try:
@@ -446,6 +455,75 @@ def get_calendar_events():
         "current": [r.to_json() for r in current],
         "overdue": [r.to_json() for r in overdue]
     })
+
+@app.route('/appsettings')
+def appsettings():
+    departments = session.query(Department).all()
+    users = session.query(Account).all()
+    return render_template("appsettings.html", departments=departments, users=users)
+
+
+@app.route('/appsettings/departments/add', methods=['POST'])
+def add_department():
+    name = request.form['departmentName']
+
+    new_dept = Department(departmentName=name)
+    session.add(new_dept)
+    session.commit()
+
+    return redirect(url_for('appsettings'))
+
+
+@app.route('/appsettings/departments/delete/<int:dept_id>')
+def delete_department(dept_id):
+    dept = session.query(Department).get(dept_id)
+
+    if dept:
+        session.delete(dept)
+        session.commit()
+
+    return redirect(url_for('appsettings'))
+
+
+@app.route('/appsettings/users/<int:user_id>', methods=['POST'])
+def update_user(user_id):
+    user = session.query(Account).get(user_id)
+
+    if user:
+        # update account type (always apply immediately)
+        if 'accountType' in request.form:
+            user.accountType = request.form['accountType']
+
+        # check if department changed
+        if 'departmentID' in request.form:
+            new_department = int(request.form['departmentID'])
+
+            if user.departmentID != new_department:
+                user.departmentID = new_department
+                user.inviteAccepted = False  # trigger invite
+
+        session.commit()
+
+    return redirect(url_for('appsettings'))
+
+
+@app.route('/appsettings/branding', methods=['POST'])
+def update_branding():
+    url = request.form['logoURL']
+
+    flask_session['logoURL'] = url
+
+    return redirect(url_for('appsettings'))
+
+@app.route('/appsettings/departments/update/<int:dept_id>', methods=['POST'])
+def update_department(dept_id):
+    dept = session.query(Department).get(dept_id)
+
+    if dept:
+        dept.departmentName = request.form['departmentName']
+        session.commit()
+
+    return redirect(url_for('appsettings'))
 
 if __name__ == "__main__":
     app.run(debug=True)
