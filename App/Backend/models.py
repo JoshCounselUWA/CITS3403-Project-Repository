@@ -150,6 +150,19 @@ class Account(Base):
     def __repr__(self):
         return f"<Account(userId={self.userID})>"
     
+    requests_made = relationship(
+        "Request",
+        foreign_keys="Request.requesterID",
+        back_populates="requester"
+    )
+
+    requests_reviewed = relationship(
+        "Request",
+        foreign_keys="Request.approverID",
+        back_populates="approver"
+    )
+
+    
 class Department(Base):
     __tablename__ = 'Department'
     departmentID = Column(Integer, primary_key=True)
