@@ -1,6 +1,6 @@
 #This is for providing tables for inventory, requests and login
 
-from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, DateTime, Boolean, Enum
+from sqlalchemy import create_engine, Column, Integer, String, ForeignKey, DateTime, Boolean, Enum, UniqueConstraint
 from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 from datetime import datetime
 import enum
@@ -36,6 +36,15 @@ class Status(enum.Enum):
     waiting = "Waiting"
     returned = "Returned"
     loaned = "Loaned"
+
+class MembershipRole(enum.Enum):
+    admin = "admin"
+    member = "member"
+
+class MembershipStatus(enum.Enum):
+    pending = "pending"
+    accepted = "accepted"
+    rejected = "rejected"
 
 class Request(Base):
     __tablename__ = 'requests'
@@ -135,8 +144,9 @@ class Account(UserMixin, Base):
     password_hash = Column(String, nullable=False) 
     accountType = Column(String,nullable=False)
 
-    departmentID = Column(Integer, ForeignKey('Department.departmentID'))
-    department = relationship("Department", back_populates="accounts")
+    # departmentID = Column(Integer, ForeignKey('Department.departmentID'))
+    # department = relationship("Department", back_populates="accounts")
+    memberships = relationship("Membership", back_populates="user", cascade="all, delete-orphan")
 
     requests_made = relationship(
         "Request",
@@ -165,14 +175,41 @@ class Account(UserMixin, Base):
     def __repr__(self):
         return f"<Account(userId={self.userID})>"
     
+class Membership(Base):
+    __tablename__ = 'Membership'
+    id = Column(Integer, primary_key=True)
+    userID = Column(Integer(ForeignKey(Account.userID)), nullable=False)
+    departmentID = Column(Integer, ForeignKey('Department.departmentID'), nullable=False)
+    role = Column(Enum(MembershipRole), nullable=False)
+    status = Column(Enum(MembershipStatus), nullable=False, default=MembershipStatus.pending)
+    createdAt = Column(DateTime, default=datetime.time.time())
+
+    user = relationship("Account", back_populates="memberships")
+    department = relationship("Department", back_populates="memberships")
+
+    __table_args__ = (UniqueConstraint('userID', 'departmentID'),)
+
+    def to_json(self):
+        return {
+            "id" : self.id,
+            "userID" : self.userID,
+            "departmentID" : self.departmentID,
+            "role" : self.role.value,
+            "status" : self.status.value
+        }
+    
+    def __repr__(self):
+        return f"<Membership(user={self.userID}, dept={self.departmentID}, role={self.role}, status={self.status})>"
+    
 class Department(Base):
     __tablename__ = 'Department'
     departmentID = Column(Integer, primary_key=True)
     departmentName = Column(String)
 
     inventory = relationship("Inventory", back_populates="department")
-    accounts = relationship("Account", back_populates="department")
+    # accounts = relationship("Account", back_populates="department")
     requests = relationship("Request", back_populates="department")
+    memberships = relationship("Membership", back_populates="department", cascade="all, delete-orphan")
 
     def to_json(self):
         return {
