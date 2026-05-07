@@ -227,10 +227,12 @@
     <h1 class="font-bold">Requests</h1>
 </div>
 
+<!-- Sidebar -->
 <div class="fixed top-16 bottom-0 left-0 w-64 flex flex-col gap-4 bg-slate-900 p-6 text-white">
     <button onclick="window.location.href='dashboard'" class="w-50 rounded-lg bg-sky-900 py-2 hover:bg-blue-800">Dashboard</button>
     <button onclick="window.location.href='requests'" class="w-50 rounded-lg bg-sky-900 py-2 hover:bg-blue-800">Requests</button>
     <button onclick="window.location.href='inventory'" class="w-50 rounded-lg bg-sky-900 py-2 hover:bg-blue-800">Inventory</button>
+    <button onclick="window.location.href='appsettings'" class="w-50 rounded-lg bg-sky-900 py-2 hover:bg-blue-800">App Settings</button>
 </div>
 
 <button onclick="openAddModal()" class="add-request-btn rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
@@ -267,7 +269,22 @@
 
                 <td>{{ r.requestTitle }}</td>
                 <td>{{ r.requestJustification }}</td>
-                <td>{{ r.status.value }}</td>
+                <td>
+                    {% set status = r.status.value|lower %}
+
+                    {% if status == 'approved' %}
+                        <span style="color:#22c55e;">Approved</span>
+
+                    {% elif status == 'rejected' %}
+                        <span style="color:#ef4444;">Declined</span>
+
+                    {% elif status == 'waiting' %}
+                        <span style="color:#facc15;">Waiting</span>
+
+                    {% else %}
+                        {{ r.status.value }}
+                    {% endif %}
+                </td>
 
                 <td>
                     {% if r.eventDateStart %}

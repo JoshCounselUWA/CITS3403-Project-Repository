@@ -1,22 +1,321 @@
-<!--
-
-This page will be for managing app settings, (themes, behaviours) and will be seen by "businessAdmin" group
-
--->
-
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>App Settings</title>
+    <title>Inventory</title>
 
-    <link rel="stylesheet" href="../Static/output.css">
-    <script src="../Static/script.js" defer></script>
-    <link rel="icon" type="image/x-icon" href="../Static/DICE_favicon.png">
+<link rel="stylesheet" href="../Static/output.css">
+<script src="../Static/script.js" defer></script>
+<link rel="icon" type="image/x-icon" href="../Static/DICE_favicon.png">
+
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+    }
+
+    body {
+        overflow: hidden;
+        background: #020617;
+    }
+
+    button {
+        cursor: pointer;
+    }
+
+    .add-department-btn {
+        position: fixed;
+        top: 90px;
+        right: 20px;
+        z-index: 50;
+        padding-left: 28px;
+        padding-right: 28px;
+    }
+
+    .table-container {
+        position: absolute;
+        top: 140px;
+        left: 300px;
+        right: 20px;
+        bottom: 20px;
+        overflow: auto;
+    }
+
+    /* MODAL */
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(2, 6, 23, 0.75);
+        backdrop-filter: blur(4px);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+    }
+
+    .modal {
+        background: #020617;
+        padding: 20px;
+        width: 400px;
+        border-radius: 12px;
+        color: white;
+        border: 1px solid rgba(255,255,255,0.08);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+    }
+
+    .modal input {
+        width: 100%;
+        padding: 6px;
+        margin-bottom: 10px;
+        background: rgba(255,255,255,0.02);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 6px;
+    }
+
+    .modal-actions {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 10px;
+    }
+
+    .modal-actions button,
+    table td.actions button {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .modal input:focus,
+    select:focus {
+        outline: none;
+        border-color: #38bdf8;
+        background: rgba(56,189,248,0.05);
+    }
+
+    table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        background: #020617;
+        border-radius: 12px;
+        overflow: hidden;
+        margin-bottom: 100px;
+    }
+
+    thead {
+        background: #0c4a6e;
+    }
+
+    th {
+        padding: 12px;
+        text-align: left;
+        font-weight: 600;
+        color: white;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    th span.arrow {
+        margin-left: 6px;
+        font-size: 0.8rem;
+        opacity: 0.7;
+    }
+
+    td {
+        padding: 12px;
+        border-top: 1px solid rgba(255,255,255,0.08);
+        color: white;
+    }
+
+    tbody tr:nth-child(even) {
+        background: rgba(255,255,255,0.02);
+    }
+
+    tbody tr:hover {
+        background: rgba(56,189,248,0.1);
+    }
+
+    table button {
+        font-size: 0.9rem;
+        padding-top: 6px;
+        padding-bottom: 6px;
+    }
+
+    th.actions,
+    td.actions {
+        white-space: nowrap;
+        width: 1%;
+        cursor: default;
+    }
+
+    select {
+        background: rgba(255,255,255,0.05);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+
+    /* dropdown options (important) */
+    select option {
+        background: #020617;
+        color: white;
+    }
+
+</style>
 
 </head>
+
 <body>
-    
+
+<!-- Header -->
+<div class="fixed top-0 left-0 right-0 z-40 flex h-16 items-center gap-4 bg-sky-950 p-3 text-white">
+    <img src="../Static/DICE.png" class="logo h-20">
+    <h1 class="font-bold">App Settings</h1>
+</div>
+
+<!-- Sidebar -->
+<div class="fixed top-16 bottom-0 left-0 w-64 flex flex-col gap-4 bg-slate-900 p-6 text-white">
+    <button onclick="window.location.href='dashboard'" class="w-50 rounded-lg bg-sky-900 py-2 hover:bg-blue-800">Dashboard</button>
+    <button onclick="window.location.href='requests'" class="w-50 rounded-lg bg-sky-900 py-2 hover:bg-blue-800">Requests</button>
+    <button onclick="window.location.href='inventory'" class="w-50 rounded-lg bg-sky-900 py-2 hover:bg-blue-800">Inventory</button>
+    <button onclick="window.location.href='appsettings'" class="w-50 rounded-lg bg-sky-900 py-2 hover:bg-blue-800">App Settings</button>
+</div>
+
+<!-- Add Department -->
+<button onclick="openAddDepartmentModal()" class="add-department-btn rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
+    Add Department
+</button>
+
+<!-- Tables -->
+<div class="table-container">
+
+    <table id="departmentsTable">
+        <thead>
+            <tr>
+                <th onclick="sortDepartmentsTable(0)">Department ID <span class="arrow">↕</span></th>
+                <th onclick="sortDepartmentsTable(1)">Department Name <span class="arrow">↕</span></th>
+                <th class="actions">Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for d in departments %}
+        <tr>
+            <td>{{ d.departmentID }}</td>
+            <td>{{ d.departmentName }}</td>
+
+            <td class="actions">
+                <button onclick="openUpdateDepartmentModal('{{ d.departmentID }}','{{ d.departmentName|escape }}')" 
+                    class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
+                    Update
+                </button>
+
+                <a href="/appsettings/departments/delete/{{ d.departmentID }}">
+                    <button class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
+                        Delete
+                    </button>
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+
+    </table>
+
+    <table id="usersTable">
+        <thead>
+            <tr>
+                <th onclick="sortUsersTable(0)">User ID <span class="arrow">↕</span></th>
+                <th onclick="sortUsersTable(1)">Username <span class="arrow">↕</span></th>
+                <th onclick="sortUsersTable(2)">Account Type <span class="arrow">↕</span></th>
+                <th onclick="sortUsersTable(3)">Department <span class="arrow">↕</span></th>
+                <th onclick="sortUsersTable(4)">Invite Status <span class="arrow">↕</span></th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for u in users %}
+        <tr>
+            <td>{{ u.userID }}</td>
+            <td>{{ u.userName }}</td>
+
+            <td>
+                <form method="POST" action="/appsettings/users/{{ u.userID }}">
+                    <select name="accountType" onchange="this.form.submit()" class="bg-white/5 border border-white/20 px-2 py-1 rounded text-white w-full">
+
+                        <option value="user" {% if u.accountType == 'user' %}selected{% endif %}>user</option>
+                        <option value="department_head" {% if u.accountType == 'department_head' %}selected{% endif %}>department_head</option>
+                        <option value="admin" {% if u.accountType == 'admin' %}selected{% endif %}>admin</option>
+                    </select>
+            </td>
+
+            <td>
+                <form method="POST" action="/appsettings/users/{{ u.userID }}">
+                    <select name="departmentID" onchange="this.form.submit()"
+                        class="bg-white/5 border border-white/20 px-2 py-1 rounded text-white w-full">
+
+                        {% for d in departments %}
+                        <option value="{{ d.departmentID }}"
+                            {% if u.departmentID == d.departmentID %}selected{% endif %}>
+                            {{ d.departmentName }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </form>
+            </td>
+            <td>
+                {% if u.inviteAccepted == True %}
+                    <span style="color:#22c55e;">Accepted</span>
+                {% elif u.inviteAccepted == None %}
+                    <span style="color:#ef4444;">Declined</span>
+                {% else %}
+                    <span style="color:#facc15;">Pending</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+</div>
+
+<!-- Department Modal -->
+<div class="modal-overlay" id="departmentModal">
+    <form id="departmentForm" class="modal" method="POST" action="/appsettings/departments/add">
+        <h2>Add Department</h2>
+
+        <input name="departmentName" id="departmentName" placeholder="Department Name" required>
+
+        <div class="modal-actions">
+            <button type="button" onclick="closeDepartmentModal()" class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
+                Cancel
+            </button>
+            <button type="submit" class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
+                Add
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Update Department Modal -->
+<div class="modal-overlay" id="updateDepartmentModal">
+    <form id="updateDepartmentForm" class="modal" method="POST">
+        <h2>Update Department</h2>
+
+        <input type="hidden" name="departmentID" id="updateDepartmentID">
+        <input name="departmentName" id="updateDepartmentName" placeholder="Department Name" required>
+
+        <div class="modal-actions">
+            <button type="button" onclick="closeUpdateDepartmentModal()" class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
+                Cancel
+            </button>
+            <button type="submit" class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
+                Update
+            </button>
+        </div>
+    </form>
+</div>
+
 </body>
 </html>
