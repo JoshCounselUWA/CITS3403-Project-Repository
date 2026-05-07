@@ -211,9 +211,10 @@
             <tr>
                 <th onclick="sortInventoryTable(0)">Item <span class="arrow">↕</span></th>
                 <th onclick="sortInventoryTable(1)">Category <span class="arrow">↕</span></th>
-                <th onclick="sortInventoryTable(2)">Quantity <span class="arrow">↕</span></th>
-                <th onclick="sortInventoryTable(3)">Status <span class="arrow">↕</span></th>
-                <th onclick="sortInventoryTable(4)">Photo <span class="arrow">↕</span></th>
+                <th onclick="sortInventoryTable(2)">Total Quantity <span class="arrow">↕</span></th>
+                <th onclick="sortInventoryTable(3)">Quantity Available <span class="arrow">↕</span></th>
+                <th onclick="sortInventoryTable(4)">Status <span class="arrow">↕</span></th>
+                <th onclick="sortInventoryTable(5)">Photo <span class="arrow">↕</span></th>
                 <th class="actions">Actions</th>
             </tr>
         </thead>
@@ -223,10 +224,12 @@
         <tr>
             <td>{{ item.itemName }}</td>
             <td>{{ item.itemDescription }}</td>
+
             <td>{{ item.itemquantity }}</td>
+            <td>{{ item.quantityAvailable }}</td>
 
             <td>
-                {% if item.itemquantity > 0 %}
+                {% if item.quantityAvailable > 0 %}
                     <span>In Stock</span>
                 {% else %}
                     <span>Out of Stock</span>

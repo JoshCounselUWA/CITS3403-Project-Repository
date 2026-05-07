@@ -3,7 +3,7 @@ from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session as flask_session
 from forms import LoginForm, RegistrationForm
 from werkzeug.security import check_password_hash, generate_password_hash
-from models import session, Inventory, Request, Account, RequestItems
+from models import session, Inventory, Request, Account, RequestItems, Status
 from flask_cors import CORS
 from flask import flash
 
@@ -89,13 +89,64 @@ def register():
 @app.route('/inventory')
 def inventory():
     items = session.query(Inventory).all()
+
+    for item in items:
+        outgoing_items = (
+            session.query(RequestItems)
+            .join(Request, RequestItems.requestID == Request.requestID)
+            .filter(
+                RequestItems.itemID == item.itemID,
+                Request.status.in_([
+                    Status.waiting,
+                    Status.approved,
+                    Status.loaned
+                ])
+            )
+            .all()
+        )
+
+        quantity_outgoing = sum(ri.quantity for ri in outgoing_items)
+        item.quantityAvailable = max(
+            (item.itemquantity or 0) - quantity_outgoing,
+            0
+        )
+
     return render_template("inventory.html", items=items)
 
 @app.route('/inventory/json')
 def inventory_json():
     items = session.query(Inventory).all()
+    result = []
+
+    for item in items:
+        outgoing_items = (
+            session.query(RequestItems)
+            .join(Request, RequestItems.requestID == Request.requestID)
+            .filter(
+                RequestItems.itemID == item.itemID,
+                Request.status.in_([
+                    Status.waiting,
+                    Status.approved,
+                    Status.loaned
+                ])
+            )
+            .all()
+        )
+
+        quantity_outgoing = sum(ri.quantity for ri in outgoing_items)
+        quantity_available = max((item.itemquantity or 0) - quantity_outgoing, 0)
+
+        result.append({
+            "itemID": item.itemID,
+            "itemName": item.itemName,
+            "itemDescription": item.itemDescription,
+            "itemquantity": quantity_available,
+            "quantityOwned": item.itemquantity,
+            "itemphoto": item.itemphoto
+        })
+
     return jsonify({
-        "items": [item.to_json() for item in items]
+        "items": result
     })
 
 #add inventory
@@ -203,10 +254,28 @@ def get_request_items(request_id):
         inventory_item = session.query(Inventory).get(request_item.itemID)
 
         if inventory_item:
+            outgoing_items = (
+                session.query(RequestItems)
+                .join(Request, RequestItems.requestID == Request.requestID)
+                .filter(
+                    RequestItems.itemID == inventory_item.itemID,
+                    Request.status.in_([
+                        Status.waiting,
+                        Status.approved,
+                        Status.loaned
+                    ])
+                )
+                .all()
+            )
+
+            quantity_outgoing = sum(ri.quantity for ri in outgoing_items)
+            quantity_available = max((inventory_item.itemquantity or 0) - quantity_outgoing, 0)
+
             items.append({
                 "itemID": inventory_item.itemID,
                 "itemName": inventory_item.itemName,
-                "itemquantity": inventory_item.itemquantity,
+                "itemquantity": quantity_available + request_item.quantity,
+                "quantityOwned": inventory_item.itemquantity,
                 "quantity": request_item.quantity
             })
 
