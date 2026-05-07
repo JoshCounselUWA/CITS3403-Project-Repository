@@ -496,6 +496,7 @@ def get_calendar_events():
     })
 
 @app.route('/appsettings')
+@login_required
 def appsettings():
     departments = session.query(Department).all()
     users = session.query(Account).all()
@@ -503,6 +504,7 @@ def appsettings():
 
 
 @app.route('/appsettings/departments/add', methods=['POST'])
+@login_required
 def add_department():
     name = request.form['departmentName']
 
@@ -514,6 +516,7 @@ def add_department():
 
 
 @app.route('/appsettings/departments/delete/<int:dept_id>')
+@login_required
 def delete_department(dept_id):
     dept = session.query(Department).get(dept_id)
 
@@ -525,6 +528,7 @@ def delete_department(dept_id):
 
 
 @app.route('/appsettings/users/<int:user_id>', methods=['POST'])
+@login_required
 def update_user(user_id):
     user = session.query(Account).get(user_id)
 
@@ -547,6 +551,7 @@ def update_user(user_id):
 
 
 @app.route('/appsettings/branding', methods=['POST'])
+@login_required
 def update_branding():
     url = request.form['logoURL'].strip()
 
@@ -564,6 +569,7 @@ def inject_branding():
     return dict(branding=session.query(Branding).first())
 
 @app.route('/appsettings/departments/update/<int:dept_id>', methods=['POST'])
+@login_required
 def update_department(dept_id):
     dept = session.query(Department).get(dept_id)
 
