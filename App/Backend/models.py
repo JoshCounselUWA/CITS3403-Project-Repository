@@ -138,6 +138,17 @@ class Account(UserMixin, Base):
     departmentID = Column(Integer, ForeignKey('Department.departmentID'))
     department = relationship("Department", back_populates="accounts")
 
+    requests_made = relationship(
+        "Request",
+        foreign_keys="Request.requesterID",
+        back_populates="requester"
+    )
+    requests_reviewed = relationship(
+        "Request",
+        foreign_keys="Request.approverID",
+        back_populates="approver"
+    )
+
     def to_json(self):
         return{
             "fName": self.fName,
