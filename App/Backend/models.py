@@ -44,7 +44,11 @@ class MembershipRole(enum.Enum):
 class MembershipStatus(enum.Enum):
     pending = "pending"
     accepted = "accepted"
-    rejected = "rejected"
+    declined = "declined"
+
+class AccountType(enum.Enum):
+    business_admin = "business_admin"
+    user = "user"
 
 class Request(Base):
     __tablename__ = 'requests'
@@ -142,11 +146,8 @@ class Account(UserMixin, Base):
     userID = Column(Integer, primary_key=True)
     userName = Column(String, unique=True, nullable=False)
     password_hash = Column(String, nullable=False) 
-    accountType = Column(String,nullable=False)
-    inviteAccepted = Column(Boolean, default=False)
-
-    # departmentID = Column(Integer, ForeignKey('Department.departmentID'))
-    # department = relationship("Department", back_populates="accounts")
+    accountType = Column(Enum(AccountType), default=AccountType.user, nullable=False)
+    
     memberships = relationship("Membership", back_populates="user", cascade="all, delete-orphan")
 
     requests_made = relationship(
@@ -244,5 +245,5 @@ class Branding(Base):
 engine = create_engine('sqlite:///DICEapp.db')
 Base.metadata.create_all(engine)
 
-Session = sessionmaker(bind=engine)
+Session = sessionmaker(bind=engine) 
 session = Session()
