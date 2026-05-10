@@ -4,8 +4,7 @@ from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session as flask_session
 from forms import LoginForm, RegistrationForm
 from werkzeug.security import check_password_hash, generate_password_hash
-from werkzeug.utils import secure_filename
-from models import session, Inventory, Request, Account, RequestItems
+from models import session, Inventory, Request, Account, RequestItems, Status, Department, Branding
 from flask_cors import CORS
 from flask import flash
 
@@ -37,6 +36,13 @@ with app.app_context():
             accountType='user'
         )
         session.add(test_user)
+        session.commit()
+
+    # ensure one branding row exists
+    branding = session.query(Branding).first()
+    if not branding:
+        branding = Branding(logoURL=None)
+        session.add(branding)
         session.commit()
   
 @app.route('/', methods=['GET', 'POST'])
@@ -92,25 +98,65 @@ def register():
 @app.route('/inventory')
 def inventory():
     items = session.query(Inventory).all()
+
+    for item in items:
+        outgoing_items = (
+            session.query(RequestItems)
+            .join(Request, RequestItems.requestID == Request.requestID)
+            .filter(
+                RequestItems.itemID == item.itemID,
+                Request.status.in_([
+                    Status.waiting,
+                    Status.approved,
+                    Status.loaned
+                ])
+            )
+            .all()
+        )
+
+        quantity_outgoing = sum(ri.quantity for ri in outgoing_items)
+        item.quantityAvailable = max(
+            (item.itemquantity or 0) - quantity_outgoing,
+            0
+        )
+
     return render_template("inventory.html", items=items)
 
 @app.route('/inventory/json')
 def inventory_json():
     items = session.query(Inventory).all()
+    result = []
+
+    for item in items:
+        outgoing_items = (
+            session.query(RequestItems)
+            .join(Request, RequestItems.requestID == Request.requestID)
+            .filter(
+                RequestItems.itemID == item.itemID,
+                Request.status.in_([
+                    Status.waiting,
+                    Status.approved,
+                    Status.loaned
+                ])
+            )
+            .all()
+        )
+
+        quantity_outgoing = sum(ri.quantity for ri in outgoing_items)
+        quantity_available = max((item.itemquantity or 0) - quantity_outgoing, 0)
+
+        result.append({
+            "itemID": item.itemID,
+            "itemName": item.itemName,
+            "itemDescription": item.itemDescription,
+            "itemquantity": quantity_available,
+            "quantityOwned": item.itemquantity,
+            "itemphoto": item.itemphoto
+        })
+
     return jsonify({
-        "items": [item.to_json() for item in items]
+        "items": result
     })
-
-def save_uploaded_image(file):
-    filename = secure_filename(file.filename)
-    if not filename:
-        return None
-    timestamp = datetime.now().strftime('%Y%m%d%M')
-    filename = f"{timestamp}_{filename}"
-    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-    file.save(filepath)
-    return url_for('static', filename=f'uploads/{filename}')
-
 
 #add inventory
 @app.route('/inventory/add', methods=['POST'])
@@ -228,10 +274,28 @@ def get_request_items(request_id):
         inventory_item = session.query(Inventory).get(request_item.itemID)
 
         if inventory_item:
+            outgoing_items = (
+                session.query(RequestItems)
+                .join(Request, RequestItems.requestID == Request.requestID)
+                .filter(
+                    RequestItems.itemID == inventory_item.itemID,
+                    Request.status.in_([
+                        Status.waiting,
+                        Status.approved,
+                        Status.loaned
+                    ])
+                )
+                .all()
+            )
+
+            quantity_outgoing = sum(ri.quantity for ri in outgoing_items)
+            quantity_available = max((inventory_item.itemquantity or 0) - quantity_outgoing, 0)
+
             items.append({
                 "itemID": inventory_item.itemID,
                 "itemName": inventory_item.itemName,
-                "itemquantity": inventory_item.itemquantity,
+                "itemquantity": quantity_available + request_item.quantity,
+                "quantityOwned": inventory_item.itemquantity,
                 "quantity": request_item.quantity
             })
 
@@ -262,30 +326,39 @@ def update_request(request_id):
         flash('Request not found', 'error')
         return redirect(url_for('requests_page'))
 
+    # update fields
     if 'requestTitle' in request.form:
         req.requestTitle = request.form['requestTitle']
+
     if 'requestJustification' in request.form:
         req.requestJustification = request.form['requestJustification']
-    if 'status' in request.form:
-        req.status = request.form['status']
+
     if 'eventDateStart' in request.form:
         req.eventDateStart = parse_datetime(request.form.get('eventDateStart'))
+
     if 'eventDateEnd' in request.form:
         req.eventDateEnd = parse_datetime(request.form.get('eventDateEnd'))
+
     if 'returnDate' in request.form:
         req.returnDate = parse_datetime(request.form.get('returnDate'))
+
     if 'overdue' in request.form:
         req.overdue = request.form['overdue']
+
     if 'approverID' in request.form:
         req.approverID = request.form['approverID']
+
     if 'departmentID' in request.form:
         req.departmentID = request.form['departmentID']
 
-    old_items = session.query(RequestItems).filter_by(requestID=request_id).all()
+    from models import Status
+    req.status = Status.waiting
 
-    for old_item in old_items:
-        session.delete(old_item)
+    # delete old items
+    session.query(RequestItems).filter_by(requestID=request_id).delete()
 
+
+    # add updated items
     items_json = request.form.get('itemsJSON', '[]')
 
     try:
@@ -402,6 +475,84 @@ def get_calendar_events():
         "current": [r.to_json() for r in current],
         "overdue": [r.to_json() for r in overdue]
     })
+
+@app.route('/appsettings')
+def appsettings():
+    departments = session.query(Department).all()
+    users = session.query(Account).all()
+    return render_template("appsettings.html", departments=departments, users=users)
+
+
+@app.route('/appsettings/departments/add', methods=['POST'])
+def add_department():
+    name = request.form['departmentName']
+
+    new_dept = Department(departmentName=name)
+    session.add(new_dept)
+    session.commit()
+
+    return redirect(url_for('appsettings'))
+
+
+@app.route('/appsettings/departments/delete/<int:dept_id>')
+def delete_department(dept_id):
+    dept = session.query(Department).get(dept_id)
+
+    if dept:
+        session.delete(dept)
+        session.commit()
+
+    return redirect(url_for('appsettings'))
+
+
+@app.route('/appsettings/users/<int:user_id>', methods=['POST'])
+def update_user(user_id):
+    user = session.query(Account).get(user_id)
+
+    if user:
+        # update account type (always apply immediately)
+        if 'accountType' in request.form:
+            user.accountType = request.form['accountType']
+
+        # check if department changed
+        if 'departmentID' in request.form:
+            new_department = int(request.form['departmentID'])
+
+            if user.departmentID != new_department:
+                user.departmentID = new_department
+                user.inviteAccepted = False  # trigger invite
+
+        session.commit()
+
+    return redirect(url_for('appsettings'))
+
+
+@app.route('/appsettings/branding', methods=['POST'])
+def update_branding():
+    url = request.form['logoURL'].strip()
+
+    branding = session.query(Branding).first()
+
+    if branding:
+        branding.logoURL = url if url else None
+
+    session.commit()
+
+    return redirect(url_for('appsettings'))
+
+@app.context_processor
+def inject_branding():
+    return dict(branding=session.query(Branding).first())
+
+@app.route('/appsettings/departments/update/<int:dept_id>', methods=['POST'])
+def update_department(dept_id):
+    dept = session.query(Department).get(dept_id)
+
+    if dept:
+        dept.departmentName = request.form['departmentName']
+        session.commit()
+
+    return redirect(url_for('appsettings'))
 
 if __name__ == "__main__":
     app.run(debug=True)

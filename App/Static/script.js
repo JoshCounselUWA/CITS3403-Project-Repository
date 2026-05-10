@@ -161,20 +161,41 @@ function filterItemDropdown() {
         return;
     }
 
-    dropdown.innerHTML = matches.map(i => `
-        <div onclick="pickItem(${i.itemID}, '${i.itemName.replace(/'/g, "\\'")}', ${i.itemquantity})"
-             style="padding:8px 10px; cursor:pointer; color:white; border-bottom:1px solid rgba(255,255,255,0.07);"
-             onmouseover="this.style.background='rgba(56,189,248,0.1)'"
-             onmouseout="this.style.background='transparent'">
+    dropdown.innerHTML = matches.map(i => {
+    const available = Number(i.itemquantity);
+    const isOutOfStock = available <= 0;
+    const safeName = i.itemName.replace(/'/g, "\\'");
+
+    return `
+        <div
+            ${isOutOfStock ? "" : `onclick="pickItem(${i.itemID}, '${safeName}', ${available})"`}
+            style="
+                padding:8px 10px;
+                cursor:${isOutOfStock ? "not-allowed" : "pointer"};
+                color:${isOutOfStock ? "rgba(255,255,255,0.35)" : "white"};
+                border-bottom:1px solid rgba(255,255,255,0.07);
+            "
+            ${isOutOfStock ? "" : "onmouseover=\"this.style.background='rgba(56,189,248,0.1)'\""}
+            ${isOutOfStock ? "" : "onmouseout=\"this.style.background='transparent'\""}
+        >
             ${i.itemName}
-            <span style="opacity:0.5; font-size:0.8rem;">(${i.itemquantity} available)</span>
+            <span style="opacity:0.5; font-size:0.8rem;">
+                ${isOutOfStock ? "(Out of stock)" : `(${available} available)`}
+            </span>
         </div>
-    `).join('');
+    `;
+}).join('');
 
     dropdown.style.display = "block";
 }
 
 function pickItem(id, name, available) {
+    available = Number(available);
+
+    if (available <= 0) {
+        return;
+    }
+
     pickedItems[id] = { name, quantity: 1, available };
     document.getElementById("itemSearch").value = "";
     document.getElementById("itemDropdown").style.display = "none";
@@ -355,4 +376,82 @@ if (requestForm) {
 
         updateDateInputColours();
     });
+}
+
+//Department Modal
+
+function openAddDepartmentModal() {
+    document.getElementById("departmentForm").reset();
+    document.getElementById("departmentModal").style.display = "flex";
+}
+
+function closeDepartmentModal() {
+    document.getElementById("departmentModal").style.display = "none";
+}
+
+function openUpdateDepartmentModal(id, name) {
+    document.getElementById("updateDepartmentID").value = id;
+    document.getElementById("updateDepartmentName").value = name;
+
+    document.getElementById("updateDepartmentForm").action = "/appsettings/departments/update/" + id;
+
+    document.getElementById("updateDepartmentModal").style.display = "flex";
+}
+
+function closeUpdateDepartmentModal() {
+    document.getElementById("updateDepartmentModal").style.display = "none";
+}
+
+/* ── APP SETTINGS SORTING ───────────────────────────────── */
+
+// generic sorter used for both tables
+function sortSimpleTable(tableId, col) {
+    const table = document.getElementById(tableId);
+    if (!table) return;
+
+    const tbody = table.tBodies[0];
+    const rows = Array.from(tbody.rows);
+
+    // store direction per column
+    if (!table.sortState) table.sortState = {};
+    table.sortState[col] = !table.sortState[col];
+    const asc = table.sortState[col];
+
+    rows.sort((a, b) => {
+        let A = a.cells[col].innerText.trim().toLowerCase();
+        let B = b.cells[col].innerText.trim().toLowerCase();
+
+        const numA = parseFloat(A);
+        const numB = parseFloat(B);
+
+        if (!isNaN(numA) && !isNaN(numB)) {
+            return asc ? numA - numB : numB - numA;
+        }
+
+        return asc ? A.localeCompare(B) : B.localeCompare(A);
+    });
+
+    rows.forEach(r => tbody.appendChild(r));
+
+    // reset arrows
+    const arrows = table.querySelectorAll("th span.arrow");
+    arrows.forEach(a => a.textContent = "↕");
+
+    // set active arrow
+    const header = table.querySelectorAll("th")[col];
+    const arrow = header?.querySelector(".arrow");
+    if (arrow) {
+        arrow.textContent = asc ? "▲" : "▼";
+    }
+}
+
+
+// wrappers (match your onclick calls)
+
+function sortUsersTable(col) {
+    sortSimpleTable("usersTable", col);
+}
+
+function sortDepartmentsTable(col) {
+    sortSimpleTable("departmentsTable", col);
 }

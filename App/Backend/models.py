@@ -35,6 +35,7 @@ class Status(enum.Enum):
     waiting = "Waiting"
     returned = "Returned"
     loaned = "Loaned"
+    overdue = "Overdue"
 
 class Request(Base):
     __tablename__ = 'requests'
@@ -133,6 +134,7 @@ class Account(Base):
     userName = Column(String, unique=True, nullable=False)
     password_hash = Column(String, nullable=False) 
     accountType = Column(String,nullable=False)
+    inviteAccepted = Column(Boolean, default=False)
 
     departmentID = Column(Integer, ForeignKey('Department.departmentID'))
     department = relationship("Department", back_populates="accounts")
@@ -150,12 +152,25 @@ class Account(Base):
     def __repr__(self):
         return f"<Account(userId={self.userID})>"
     
+    requests_made = relationship(
+        "Request",
+        foreign_keys="Request.requesterID",
+        back_populates="requester"
+    )
+
+    requests_reviewed = relationship(
+        "Request",
+        foreign_keys="Request.approverID",
+        back_populates="approver"
+    )
+
+    
 class Department(Base):
     __tablename__ = 'Department'
     departmentID = Column(Integer, primary_key=True)
     departmentName = Column(String)
 
-    inventory_items = relationship("Inventory", back_populates="department")
+    inventory = relationship("Inventory", back_populates="department")
     accounts = relationship("Account", back_populates="department")
     requests = relationship("Request", back_populates="department")
 
@@ -167,8 +182,15 @@ class Department(Base):
     
     def __repr__(self):
         return f"<Department(departmentID={self.departmentID})>"
+    
+class Branding(Base):
+    __tablename__ = "branding"
+
+    id = Column(Integer, primary_key=True)
+    logoURL = Column(String, nullable=True)
 
 engine = create_engine('sqlite:///DICEapp.db')
 Base.metadata.create_all(engine)
+
 Session = sessionmaker(bind=engine)
 session = Session()

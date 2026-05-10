@@ -182,9 +182,21 @@
 <body>
 
 <!-- Header -->
-<div class="fixed top-0 left-0 right-0 z-40 flex h-16 items-center gap-4 bg-sky-950 p-3 text-white">
-    <img src="../Static/DICE.png" class="logo h-20">
-    <h1 class="font-bold">Inventory</h1>
+<div class="fixed top-0 left-0 right-0 z-40 flex h-16 items-center justify-between bg-sky-950 p-3 text-white">
+
+    <!-- LEFT: ALWAYS DICE -->
+    <div class="flex items-center gap-4">
+        <img src="../Static/DICE.png" class="logo h-20">
+        <h1 class="font-bold">Inventory</h1>
+    </div>
+
+    <!-- RIGHT: OPTIONAL BRANDING -->
+    <div class="flex items-center" style="position: absolute; right: 20px;">
+        {% if branding and branding.logoURL %}
+            <img src="{{ branding.logoURL }}" style="height: 40px; object-fit: contain;">
+        {% endif %}
+    </div>
+
 </div>
 
 <!-- Sidebar -->
@@ -192,6 +204,7 @@
     <button onclick="window.location.href='dashboard'" class="w-50 rounded-lg bg-sky-900 py-2 hover:bg-blue-800">Dashboard</button>
     <button onclick="window.location.href='requests'" class="w-50 rounded-lg bg-sky-900 py-2 hover:bg-blue-800">Requests</button>
     <button onclick="window.location.href='inventory'" class="w-50 rounded-lg bg-sky-900 py-2 hover:bg-blue-800">Inventory</button>
+    <button onclick="window.location.href='appsettings'" class="w-50 rounded-lg bg-sky-900 py-2 hover:bg-blue-800">App Settings</button>
 </div>
 
 <!-- Add Item -->
@@ -211,9 +224,10 @@
             <tr>
                 <th onclick="sortInventoryTable(0)">Item <span class="arrow">↕</span></th>
                 <th onclick="sortInventoryTable(1)">Category <span class="arrow">↕</span></th>
-                <th onclick="sortInventoryTable(2)">Quantity <span class="arrow">↕</span></th>
-                <th onclick="sortInventoryTable(3)">Status <span class="arrow">↕</span></th>
-                <th onclick="sortInventoryTable(4)">Photo <span class="arrow">↕</span></th>
+                <th onclick="sortInventoryTable(2)">Total Quantity <span class="arrow">↕</span></th>
+                <th onclick="sortInventoryTable(3)">Quantity Available <span class="arrow">↕</span></th>
+                <th onclick="sortInventoryTable(4)">Status <span class="arrow">↕</span></th>
+                <th onclick="sortInventoryTable(5)">Photo <span class="arrow">↕</span></th>
                 <th class="actions">Actions</th>
             </tr>
         </thead>
@@ -223,10 +237,12 @@
         <tr>
             <td>{{ item.itemName }}</td>
             <td>{{ item.itemDescription }}</td>
+
             <td>{{ item.itemquantity }}</td>
+            <td>{{ item.quantityAvailable }}</td>
 
             <td>
-                {% if item.itemquantity > 0 %}
+                {% if item.quantityAvailable > 0 %}
                     <span>In Stock</span>
                 {% else %}
                     <span>Out of Stock</span>
