@@ -1,14 +1,17 @@
 import json
+import os
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session as flask_session
 from forms import LoginForm, RegistrationForm
 from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.utils import secure_filename
 from models import session, Inventory, Request, Account, RequestItems
 from flask_cors import CORS
 from flask import flash
 
 app = Flask(__name__, template_folder="../Pages", static_folder="../Static")
 app.config['SECRET_KEY'] = 'need_to_change_this_later_secret_key'
+app.config['UPLOAD_FOLDER'] = os.path.join( os.path.dirname(__file__), '..', 'Static','uploads')
 CORS(app)
 
 def parse_datetime(value):
@@ -98,15 +101,31 @@ def inventory_json():
         "items": [item.to_json() for item in items]
     })
 
+def save_uploaded_image(file):
+    filename = secure_filename(file.filename)
+    if not filename:
+        return None
+    timestamp = datetime.now().strftime('%Y%m%d%M')
+    filename = f"{timestamp}_{filename}"
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    file.save(filepath)
+    return url_for('static', filename=f'uploads/{filename}')
+
+
 #add inventory
 @app.route('/inventory/add', methods=['POST'])
 def add_inventory():
+    image_url = request.form.get('itemphoto')
+    image_file = request.files.get('itemphoto_file')
+    if image_file and image_file.filename:
+        image_url = save_uploaded_image(image_file)
+
     item = Inventory(
         itemName=request.form['itemName'],
-        itemDescription=request.form['itemDescription'],
-        itemquantity=request.form['itemquantity'],
-        itemphoto=request.form['itemphoto'],
-        departmentID=request.form['departmentID']
+        itemDescription=request.form.get('itemDescription'),
+        itemquantity=request.form.get('itemquantity'),
+        itemphoto=image_url,
+        departmentID=request.form.get('departmentID')
     )
 
     session.add(item)
@@ -143,8 +162,14 @@ def update_inventory(item_id):
             item.itemDescription = request.form['itemDescription']
         if 'itemquantity' in request.form:
             item.itemquantity = request.form['itemquantity']
-        if 'itemphoto' in request.form:
-            item.itemphoto = request.form['itemphoto']
+
+        image_url = request.form.get('itemphoto')
+        image_file = request.files.get('itemphoto_file')
+        if image_file and image_file.filename:
+            image_url = save_uploaded_image(image_file)
+        if image_url is not None:
+            item.itemphoto = image_url
+
         if 'departmentID' in request.form:
             item.departmentID = request.form['departmentID']
 
