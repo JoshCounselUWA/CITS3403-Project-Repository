@@ -35,6 +35,7 @@ class Status(enum.Enum):
     waiting = "Waiting"
     returned = "Returned"
     loaned = "Loaned"
+    overdue = "Overdue"
 
 class Request(Base):
     __tablename__ = 'requests'

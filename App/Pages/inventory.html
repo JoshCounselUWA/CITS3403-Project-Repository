@@ -187,7 +187,7 @@
     <!-- LEFT: ALWAYS DICE -->
     <div class="flex items-center gap-4">
         <img src="../Static/DICE.png" class="logo h-20">
-        <h1 class="font-bold">App Settings</h1>
+        <h1 class="font-bold">Inventory</h1>
     </div>
 
     <!-- RIGHT: OPTIONAL BRANDING -->
@@ -276,7 +276,7 @@
 
 <!-- Modal -->
 <div class="modal-overlay" id="modal">
-    <form id="itemForm" class="modal" method="POST">
+    <form id="itemForm" class="modal" method="POST" enctype="multipart/form-data">
         <h2 id="modalTitle">Add Item</h2>
 
         <input type="hidden" name="itemID" id="itemID">
@@ -284,6 +284,7 @@
         <input name="itemDescription" id="itemDescription" placeholder="Category">
         <input name="itemquantity" id="itemquantity" type="number" placeholder="Quantity" required>
         <input name="itemphoto" id="itemphoto" placeholder="Photo URL">
+        <input type="file" name="itemphoto_file" id="itemphoto_file" accept="image/*">
         <input name="departmentID" id="departmentID" type="number" placeholder="Department ID" required>
 
         <div class="modal-actions">
