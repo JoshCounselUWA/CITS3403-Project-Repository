@@ -19,8 +19,149 @@ This page will have different content depending on who logs in, eg: different "u
     <link rel="icon" type="image/x-icon" href="../Static/DICE_favicon.png">
 
     <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+
+        body {
+            overflow: hidden;
+            background: #020617;
+        }
+
         button {
             cursor: pointer;
+        }
+
+        .content-container {
+            position: absolute;
+            top: 140px;
+            left: 300px;
+            right: 20px;
+            bottom: 20px;
+            overflow-y: auto;
+        }
+
+        .dashboard-section {
+            background: #020617;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.08);
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+
+        .section-header {
+            background: #0c4a6e;
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.2s ease;
+        }
+
+        .section-header:hover {
+            background: #0d5a7a;
+        }
+
+        .section-header.collapsed {
+            border-bottom: none;
+        }
+
+        .section-header h3 {
+            margin: 0;
+            color: white;
+            font-weight: 600;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .section-toggle {
+            font-size: 1.2rem;
+            color: rgba(255,255,255,0.7);
+            transition: transform 0.2s ease;
+        }
+
+        .section-header.collapsed .section-toggle {
+            transform: rotate(-90deg);
+        }
+
+        .section-content {
+            padding: 20px;
+        }
+
+        .request-card, .loan-card, .invitation-card {
+            background: rgba(255,255,255,0.02);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .request-card:hover, .loan-card:hover, .invitation-card:hover {
+            background: rgba(56,189,248,0.1);
+            border-color: rgba(56,189,248,0.3);
+        }
+
+        .card-title {
+            font-weight: 600;
+            color: white;
+            margin-bottom: 8px;
+        }
+
+        .card-description {
+            color: #cbd5e1;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+
+        .card-meta {
+            color: #94a3b8;
+            font-size: 0.8rem;
+        }
+
+        .status-waiting {
+            color: #f59e0b;
+            background: rgba(245, 158, 11, 0.2);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .status-approved {
+            color: #22c55e;
+            background: rgba(34, 197, 94, 0.2);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .status-loaned {
+            color: #3b82f6;
+            background: rgba(59, 130, 246, 0.2);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .due-date {
+            color: #ef4444;
+            font-weight: 600;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #64748b;
+            padding: 40px 20px;
+        }
+
+        .empty-state p {
+            margin: 0;
+            font-size: 1rem;
         }
     </style>
 
@@ -53,12 +194,93 @@ This page will have different content depending on who logs in, eg: different "u
     </div>
     
     <!-- Main Content -->
-     <div class="fixed top-16 bottom-0 left-64 right-0 flex justify-center items-center">
-        <div>
-                <h2 class="text-2xl font-bold p-2 text-white">Welcome to your Dashboard</h2>
-                <p class="text-white">Here you can view your current loans and requests.</p>
+    <div class="content-container">
+        {% set current_user_id = current_user_id if current_user_id is defined else None %}
+        {% set user_specific = current_user_id is not none %}
+
+        <div class="dashboard-section">
+            <div class="section-header" onclick="toggleSection('requests-section')">
+                <h3>Pending Requests <span class="section-toggle">▼</span></h3>
+            </div>
+            <div class="section-content" id="requests-section">
+                {% set found_requests = false %}
+                {% for request in requests %}
+                    {% if not user_specific or request.requesterID == current_user_id %}
+                        {% if request.status.value in ['Waiting', 'Approved'] %}
+                            {% set found_requests = true %}
+                            <div class="request-card">
+                                <div class="card-title">{{ request.requestTitle }}</div>
+                                <div class="card-description">{{ request.requestJustification or 'No justification provided' }}</div>
+                                <div class="card-meta">
+                                    Status: <span class="status-{{ request.status.value.lower() }}">{{ request.status.value }}</span>
+                                </div>
+                                {% if request.eventDateStart %}
+                                    <div class="card-meta">Event: {{ request.eventDateStart.strftime('%Y-%m-%d') }}</div>
+                                {% endif %}
+                                {% if request.returnDate %}
+                                    <div class="card-meta">Return: {{ request.returnDate.strftime('%Y-%m-%d') }}</div>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+                {% if not found_requests %}
+                    <div class="empty-state">
+                        <p>No pending requests.</p>
+                    </div>
+                {% endif %}
+            </div>
         </div>
-     </div>
+
+        <div class="dashboard-section">
+            <div class="section-header" onclick="toggleSection('loans-section')">
+                <h3>Active Loans <span class="section-toggle">▼</span></h3>
+            </div>
+            <div class="section-content" id="loans-section">
+                {% set found_loans = false %}
+                {% for request in requests %}
+                    {% if not user_specific or request.requesterID == current_user_id %}
+                        {% if request.status.value == 'Loaned' %}
+                            {% set found_loans = true %}
+                            <div class="loan-card">
+                                <div class="card-title">{{ request.requestTitle }}</div>
+                                <div class="card-description">{{ request.requestJustification or 'No justification provided' }}</div>
+                                <div class="card-meta">
+                                    Due: <span class="due-date">{{ request.returnDate.strftime('%Y-%m-%d') if request.returnDate else 'N/A' }}</span>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+                {% if not found_loans %}
+                    <div class="empty-state">
+                        <p>No active loans.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="dashboard-section">
+            <div class="section-header" onclick="toggleSection('invitations-section')">
+                <h3>Organization Invitations <span class="section-toggle">▼</span></h3>
+            </div>
+            <div class="section-content" id="invitations-section">
+                {% if invitations is defined and invitations %}
+                    {% for invite in invitations %}
+                        <div class="invitation-card">
+                            <div class="card-title">{{ invite.organizationName or 'Organization Invitation' }}</div>
+                            <div class="card-description">Invited by {{ invite.inviterName or 'unknown' }}</div>
+                            <div class="card-meta">Status: {{ invite.status.value }}</div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <p>No pending invitations.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
 
 </body>
 </html>

@@ -349,6 +349,24 @@ function updateDateInputColours() {
     });
 }
 
+/* ── DASHBOARD PAGE ────────────────────────────────────────── */
+
+function toggleSection(sectionId) {
+    const section = document.getElementById(sectionId);
+    const header = section.previousElementSibling;
+    const toggle = header.querySelector('.section-toggle');
+
+    if (section.style.display === 'none') {
+        section.style.display = 'block';
+        header.classList.remove('collapsed');
+        toggle.style.transform = 'rotate(0deg)';
+    } else {
+        section.style.display = 'none';
+        header.classList.add('collapsed');
+        toggle.style.transform = 'rotate(-90deg)';
+    }
+}
+
 document.addEventListener("input", function (e) {
     if (e.target.matches('input[type="datetime-local"]')) {
         updateDateInputColours();
