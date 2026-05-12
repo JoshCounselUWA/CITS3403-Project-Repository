@@ -250,6 +250,13 @@
             <td>{{ d.departmentName }}</td>
 
             <td class="actions">
+
+                <a href="/departments/{{ d.departmentID }}">
+                    <button class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
+                    Manage
+                    </button>
+                </a>
+                
                 <button onclick="openUpdateDepartmentModal('{{ d.departmentID }}','{{ d.departmentName|escape }}')" 
                     class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
                     Update
