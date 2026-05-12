@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>403 Forbidden</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <!-- Header -->
+    <div class="fixed top-0 left-0 right-0 z-40 flex h-16 items-center justify-between bg-sky-950 p-3 text-white">
+
+        <!-- LEFT: ALWAYS DICE -->
+        <div class="flex items-center gap-4">
+            <img src="../Static/DICE.png" class="logo h-20">
+            <h1 class="font-bold">Dashboard</h1>
+        </div>
+
+        <!-- RIGHT: OPTIONAL BRANDING -->
+        <div class="flex items-center" style="position: absolute; right: 20px;">
+            {% if branding and branding.logoURL %}
+                <img src="{{ branding.logoURL }}" style="height: 40px; object-fit: contain;">
+            {% endif %}
+        </div>
+
+    </div>
+
+    <!-- Main Content -->
+    <div class="fixed top-16 bottom-0 left-64 right-0 flex justify-center items-center">
+        <div>
+                <h2 class="text-2xl font-bold p-2 text-white">403 Error</h2>
+                <p class="text-white">Access forbidden. You do not have permission to view this page.</p>
+        </div>
+     </div>
+    </body>
+</html>
