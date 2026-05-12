@@ -3,7 +3,7 @@ from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session as flask_session
 from forms import LoginForm, RegistrationForm
 from werkzeug.security import check_password_hash, generate_password_hash
-from models import session, Inventory, Request, Account, RequestItems, Status, Department, Branding, AccountType
+from models import session, Inventory, Request, Account, RequestItems, Status, Department, Branding, AccountType, Membership, MembershipRole, MembershipStatus
 from flask_cors import CORS
 from flask import flash, abort
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
@@ -14,6 +14,10 @@ app.config['SECRET_KEY'] = 'need_to_change_this_later_secret_key'
 CORS(app)
 login = LoginManager(app)
 login.login_view = 'login'
+
+@app.errorhandler(403)
+def forbidden(e):
+    return render_template('403.html'), 403
 
 @login.user_loader
 def load_user(id):
@@ -591,6 +595,60 @@ def update_department(dept_id):
         dept.departmentName = request.form['departmentName']
         session.commit()
 
+    return redirect(url_for('appsettings'))
+
+@app.route('/departments/<int:dept_id>')
+@dept_admin_required
+def department_detail(dept_id):
+    dept = session.query(Department).get(dept_id)
+    if not dept:
+        flash('Department not found', 'error')
+        return redirect(url_for('appsettings'))
+    
+    members = (session.query(Membership).filter_by(departmentID=dept_id, status=MembershipStatus.accepted).all())
+    pending = (session.query(Membership).filter_by(departmentID=dept_id, status=MembershipStatus.pending).all())
+    declined = (session.query(Membership).filter_by(departmentID=dept_id, status=MembershipStatus.declined).all())
+    
+    return render_template('department_detail.html', dept=dept, members=members, pending=pending, declined=declined)
+
+@app.route('/departments/<int:dept_id>/invite', methods=['POST'])
+@dept_admin_required
+def invite_user(dept_id):
+    username = request.form.get('username', '').strip()
+    role_str = request.form.get('role', 'member')
+    
+    if not username:
+        flash('Username is required', 'error')
+        return redirect(url_for('appsettings'))
+    
+    invitee = session.query(Account).filter_by(userName=username).first()
+    if not invitee:
+        flash(f'No user found with username -> {username}', 'error')
+        return redirect(url_for('appsettings'))
+    
+    try:
+        role = MembershipRole(role_str)
+    except ValueError:
+        flash('Invalid role', 'error')
+        return redirect(url_for('appsettings'))
+    
+    existing = session.query(Membership).filter_by(userID=invitee.userID, departmentID=dept_id).first()
+    
+    if existing:
+        if existing.status == MembershipStatus.accepted:
+            flash(f'{username} is already a member of this department', 'error')
+            return redirect(url_for('appsettings'))
+        if existing.status == MembershipStatus.pending:
+            flash(f'{username} has not accepted pending invite', 'error')
+            return redirect(url_for('appsettings'))
+        # status == declined → re-invite
+        existing.status = MembershipStatus.pending
+        existing.role = role
+    else:
+        session.add(Membership(userID=invitee.userID, departmentID=dept_id, role=role, status=MembershipStatus.pending,))
+    
+    session.commit()
+    flash(f'Invitation sent to {username}', 'success')
     return redirect(url_for('appsettings'))
 
 if __name__ == "__main__":
