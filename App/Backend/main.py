@@ -3,7 +3,7 @@ from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session as flask_session
 from forms import LoginForm, RegistrationForm
 from werkzeug.security import check_password_hash, generate_password_hash
-from models import session, Inventory, Request, Account, RequestItems, Status, Department, Branding
+from models import session, Inventory, Request, Account, RequestItems, Status, Department, Branding, AccountType
 from flask_cors import CORS
 from flask import flash
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
@@ -39,7 +39,7 @@ with app.app_context():
             lName='User',
             userName='testuser',
             password_hash=generate_password_hash('password123'),
-            accountType='user'
+            accountType=AccountType.business_admin
         )
         session.add(test_user)
         session.commit()
@@ -98,7 +98,7 @@ def register():
             lName=form.last_name.data,
             userName=form.username.data,
             password_hash=generate_password_hash(form.password.data),
-            accountType='user'
+            accountType=AccountType.user
         )
         session.add(new_user)
         session.commit()
@@ -535,15 +535,7 @@ def update_user(user_id):
     if user:
         # update account type (always apply immediately)
         if 'accountType' in request.form:
-            user.accountType = request.form['accountType']
-
-        # check if department changed
-        if 'departmentID' in request.form:
-            new_department = int(request.form['departmentID'])
-
-            if user.departmentID != new_department:
-                user.departmentID = new_department
-                user.inviteAccepted = False  # trigger invite
+            user.accountType = AccountType(request.form['accountType'])
 
         session.commit()
 
