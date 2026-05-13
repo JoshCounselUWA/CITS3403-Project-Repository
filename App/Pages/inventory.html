@@ -233,8 +233,8 @@
 
 <!-- Add Item -->
 {% if current_user.accountType == "business_admin"
-      or current_user.memberships | selectattr("role", "equalto", "admin")
-         | selectattr("status", "equalto", "accepted")
+      or current_user.memberships | selectattr("role.value", "equalto", "admin")
+         | selectattr("status.value", "equalto", "accepted")
          | list | length > 0 %}
 <button onclick="openAddItemModal()" class="add-item-btn rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
     Add Item

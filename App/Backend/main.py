@@ -218,6 +218,16 @@ def inventory_json():
 @app.route('/inventory/add', methods=['POST'])
 @login_required
 def add_inventory():
+
+
+    if current_user.accountType != "business_admin":
+        if not any(
+            m.role.value == "admin" and m.status.value == "accepted"
+            for m in current_user.memberships
+        ):
+            abort(403)
+
+
     image_url = request.form.get('itemphoto')
     image_file = request.files.get('itemphoto_file')
     if image_file and image_file.filename:
@@ -240,6 +250,15 @@ def add_inventory():
 @app.route('/inventory/delete/<int:item_id>')
 @login_required
 def delete_inventory(item_id):
+
+    
+    if not item:
+        flash('Item not found', 'error')
+        return redirect(url_for('inventory'))
+
+    if current_user.accountType != "business_admin" and not current_user.is_admin_of(item.departmentID):
+        abort(403)
+
     item = session.query(Inventory).get(item_id)
 
     if not item:
@@ -255,6 +274,16 @@ def delete_inventory(item_id):
 @app.route('/inventory/<int:item_id>', methods=['POST'])
 @login_required
 def update_inventory(item_id):
+
+    
+    if current_user.accountType != "business_admin":
+        if not any(
+            m.role.value == "admin" and m.status.value == "accepted"
+            for m in current_user.memberships
+        ):
+            abort(403)
+
+
     item = session.query(Inventory).get(item_id)
 
     if not item:
@@ -453,7 +482,7 @@ def approve_request(request_id):
         return redirect(url_for('requests_page'))
 
     #permission check
-    if current_user.accountType != AccountType.business_admin and not current_user.is_admin_of(req.departmentID):
+    if current_user.accountType != "business_admin" and not current_user.is_admin_of(req.departmentID):
         abort(403)
 
     req.status = Status.approved
@@ -472,7 +501,7 @@ def decline_request(request_id):
         return redirect(url_for('requests_page'))
 
     #permission check
-    if current_user.accountType != AccountType.business_admin and not current_user.is_admin_of(req.departmentID):
+    if current_user.accountType != "business_admin" and not current_user.is_admin_of(req.departmentID):
         abort(403)
 
     req.status = Status.rejected
