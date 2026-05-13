@@ -9,6 +9,7 @@ from flask_cors import CORS
 from flask import flash, abort
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from functools import wraps
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__, template_folder="../Pages", static_folder="../Static")
 app.config['SECRET_KEY'] = 'need_to_change_this_later_secret_key'
@@ -16,6 +17,16 @@ app.config['UPLOAD_FOLDER'] = os.path.join( os.path.dirname(__file__), '..', 'St
 CORS(app)
 login = LoginManager(app)
 login.login_view = 'login'
+
+def save_uploaded_image(file):
+    filename = secure_filename(file.filename)
+    upload_dir = app.config['UPLOAD_FOLDER']
+    os.makedirs(upload_dir, exist_ok=True)
+
+    path = os.path.join(upload_dir, filename)
+    file.save(path)
+
+    return f"/Static/uploads/{filename}"
 
 @app.errorhandler(403)
 def forbidden(e):
@@ -34,7 +45,7 @@ def business_admin_required(f):
     @wraps(f)
     @login_required
     def wrapped(*args, **kwargs):
-        if current_user.accountType != AccountType.business_admin:
+        if current_user.accountType != "business_admin":
             abort(403)
         return f(*args, **kwargs)
     return wrapped
@@ -44,7 +55,7 @@ def dept_admin_required(f):
     @login_required
     def wrapped(*args, **kwargs):
         dept_id = kwargs.get('dept_id') or kwargs.get('department_id')
-        if current_user.accountType == AccountType.business_admin:
+        if current_user.accountType == "business_admin":
             return f(*args, **kwargs)
         if dept_id is None or not current_user.is_admin_of(dept_id):
             abort(403)
@@ -68,7 +79,7 @@ with app.app_context():
             lName='User',
             userName='testuser',
             password_hash=generate_password_hash('password123'),
-            accountType=AccountType.business_admin
+            accountType="business_admin"
         )
         session.add(test_user)
         session.commit()
@@ -127,7 +138,7 @@ def register():
             lName=form.last_name.data,
             userName=form.username.data,
             password_hash=generate_password_hash(form.password.data),
-            accountType=AccountType.user
+            accountType="user"
         )
         session.add(new_user)
         session.commit()
@@ -575,7 +586,7 @@ def update_user(user_id):
     if user:
         # update account type (always apply immediately)
         if 'accountType' in request.form:
-            user.accountType = AccountType(request.form['accountType'])
+            user.accountType = request.form['accountType']
 
         session.commit()
 
@@ -597,8 +608,11 @@ def update_branding():
     return redirect(url_for('appsettings'))
 
 @app.context_processor
-def inject_branding():
-    return dict(branding=session.query(Branding).first())
+def inject_globals():
+    return dict(
+        branding=session.query(Branding).first(),
+        AccountType=AccountType
+    )
 
 @app.route('/appsettings/departments/update/<int:dept_id>', methods=['POST'])
 @business_admin_required
