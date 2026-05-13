@@ -9,6 +9,7 @@ from flask_cors import CORS
 from flask import flash, abort
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from functools import wraps
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__, template_folder="../Pages", static_folder="../Static")
 app.config['SECRET_KEY'] = 'need_to_change_this_later_secret_key'
@@ -16,6 +17,16 @@ app.config['UPLOAD_FOLDER'] = os.path.join( os.path.dirname(__file__), '..', 'St
 CORS(app)
 login = LoginManager(app)
 login.login_view = 'login'
+
+def save_uploaded_image(file):
+    filename = secure_filename(file.filename)
+    upload_dir = app.config['UPLOAD_FOLDER']
+    os.makedirs(upload_dir, exist_ok=True)
+
+    path = os.path.join(upload_dir, filename)
+    file.save(path)
+
+    return f"/Static/uploads/{filename}"
 
 @app.errorhandler(403)
 def forbidden(e):
