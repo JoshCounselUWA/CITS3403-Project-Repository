@@ -32,7 +32,7 @@ class Inventory(Base):
     
 class Status(enum.Enum):
     approved = "Approved"
-    rejected = "Rejected"
+    declined = "Declined"
     waiting = "Waiting"
     returned = "Returned"
     loaned = "Loaned"
