@@ -58,6 +58,30 @@ This page will have different content depending on who logs in, eg: different "u
                 <h2 class="text-2xl font-bold p-2 text-white">Welcome to your Dashboard</h2>
                 <p class="text-white">Here you can view your current loans and requests.</p>
         </div>
+        {% if pending_invites %}
+        <div class="bg-slate-900 border border-white/10 rounded-xl p-6 mb-8 max-w-3xl">
+            <h3 class="text-xl font-bold text-white mb-4">Pending Invitations</h3>
+            {% for inv in pending_invites %}
+                <div class="flex items-center justify-between gap-4 py-3 border-b border-white/10 last:border-b-0">
+                    <span class="text-white">
+                        You've been invited to <strong>{{ inv.department.departmentName }}</strong> as <em>{{ inv.role.value }}</em>
+                    </span>
+                    <div class="flex gap-2 flex-shrink-0">
+                        <form method="POST" action="/invitations/{{ inv.id }}/accept">
+                            <button type="submit" class="rounded-lg bg-emerald-700 hover:bg-emerald-600 px-4 py-2 text-white">
+                                Accept
+                            </button>
+                        </form>
+                        <form method="POST" action="/invitations/{{ inv.id }}/decline">
+                            <button type="submit" class="rounded-lg bg-red-900 hover:bg-red-700 px-4 py-2 text-white">
+                                Decline
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        {% endif %}
      </div>
 
 </body>

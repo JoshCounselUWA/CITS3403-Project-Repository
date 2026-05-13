@@ -55,7 +55,8 @@ def dept_admin_required(f):
 def dashboard():
     items = session.query(Inventory).all()
     requests = session.query(Request).all()
-    return render_template("dashboard.html", items=items, requests=requests)
+    pending_invites = (session.query(Membership).filter_by(userID=current_user.userID, status=MembershipStatus.pending).all())
+    return render_template("dashboard.html", items=items, requests=requests, pending_invites=pending_invites)
 
 with app.app_context():
     existing = session.query(Account).filter_by(userName='testuser').first()
@@ -650,6 +651,29 @@ def invite_user(dept_id):
     session.commit()
     flash(f'Invitation sent to {username}', 'success')
     return redirect(url_for('appsettings'))
+
+@app.route('/invitations/<int:membership_id>/accept', methods=['POST'])
+@login_required
+def accept_invitation(membership_id):
+    m = session.query(Membership).get(membership_id)
+    if not m or m.userID != current_user.userID or m.status != MembershipStatus.pending:
+        abort(403)
+    m.status = MembershipStatus.accepted
+    session.commit()
+    flash(f'Joined {m.department.departmentName}', 'success')
+    return redirect(url_for('dashboard'))
+
+
+@app.route('/invitations/<int:membership_id>/decline', methods=['POST'])
+@login_required
+def decline_invitation(membership_id):
+    m = session.query(Membership).get(membership_id)
+    if not m or m.userID != current_user.userID or m.status != MembershipStatus.pending:
+        abort(403)
+    m.status = MembershipStatus.declined
+    session.commit()
+    flash('Invitation declined', 'success')
+    return redirect(url_for('dashboard'))
 
 if __name__ == "__main__":
     app.run(debug=True)
