@@ -288,7 +288,7 @@ def add_request():
         eventDateStart=parse_datetime(request.form.get('eventDateStart')),
         eventDateEnd=parse_datetime(request.form.get('eventDateEnd')),
         returnDate=parse_datetime(request.form.get('returnDate')),
-        requesterID=request.form['requesterID'],
+        requesterID=current_user.userID,
         departmentID=request.form['departmentID']
     )
 
