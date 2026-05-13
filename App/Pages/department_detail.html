@@ -23,7 +23,7 @@
         th, td { text-align: left; padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.08); }
         th { color: rgba(255,255,255,0.6); font-weight: 600; }
         .invite-form { display: flex; gap: 10px; align-items: center; }
-        .invite-form input, .invite-form select {
+        .invite-form input {
             padding: 6px 8px; background: rgba(255,255,255,0.02);
             color: white; border: 1px solid rgba(255,255,255,0.15); border-radius: 6px;
         }
@@ -39,6 +39,26 @@
         .flash-message { padding: 10px; margin-bottom: 12px; border-radius: 6px; }
         .flash-error { background: rgba(239,68,68,0.15); }
         .flash-success { background: rgba(34,197,94,0.15); }
+
+        select {
+            padding: 6px 8px;
+            background: rgba(255,255,255,0.05);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #38bdf8;
+            background: rgba(56,189,248,0.05);
+        }
+
+        select option {
+            background: #020617;
+            color: white;
+        }
+
     </style>
 </head>
 <body>
