@@ -473,3 +473,36 @@ function sortUsersTable(col) {
 function sortDepartmentsTable(col) {
     sortSimpleTable("departmentsTable", col);
 }
+
+function bindFileInput() {
+    const fileInput = document.getElementById("itemphoto_file");
+    const urlInput = document.getElementById("itemphoto");
+    const fileNameDisplay = document.getElementById("fileName");
+
+    if (!fileInput || !urlInput) return;
+
+    fileInput.addEventListener("change", function () {
+        const file = this.files[0];
+
+        if (!file) {
+            urlInput.value = "";
+            if (fileNameDisplay) fileNameDisplay.textContent = "";
+            return;
+        }
+
+        // create preview url
+        const tempUrl = URL.createObjectURL(file);
+
+        // update url field
+        urlInput.value = tempUrl;
+
+        // ✅ add filename display here
+        if (fileNameDisplay) {
+            fileNameDisplay.textContent = file.name;
+        }
+    });
+}
+
+// run once on page load
+document.addEventListener("DOMContentLoaded", bindFileInput);
+
