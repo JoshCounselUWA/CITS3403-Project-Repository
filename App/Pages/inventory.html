@@ -232,9 +232,14 @@
 </div>
 
 <!-- Add Item -->
+{% if current_user.accountType == "business_admin"
+      or current_user.memberships | selectattr("role.value", "equalto", "admin")
+         | selectattr("status.value", "equalto", "accepted")
+         | list | length > 0 %}
 <button onclick="openAddItemModal()" class="add-item-btn rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
     Add Item
 </button>
+{% endif %}
 
 <!-- SEARCH BAR -->
 <div class="search-bar">
@@ -282,15 +287,26 @@
             </td>
 
             <td class="actions">
-                <button onclick="openUpdateItemModal('{{ item.itemID }}','{{ item.itemName|escape }}','{{ item.itemDescription|escape }}','{{ item.itemquantity }}','{{ item.itemphoto|escape }}')" class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
-                    Update
-                </button>
+                {% if current_user.accountType == "business_admin"
+                    or current_user.is_admin_of(item.departmentID) %}
 
-                <a href="/inventory/delete/{{ item.itemID }}">
-                    <button class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
-                        Delete
+                    <button onclick="openUpdateItemModal(
+                        '{{ item.itemID }}',
+                        '{{ item.itemName|escape }}',
+                        '{{ item.itemDescription|escape }}',
+                        '{{ item.itemquantity }}',
+                        '{{ item.itemphoto|escape }}')"
+                        class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
+                        Update
                     </button>
-                </a>
+
+                    <a href="/inventory/delete/{{ item.itemID }}">
+                        <button class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
+                            Delete
+                        </button>
+                    </a>
+
+                {% endif %}
             </td>
         </tr>
         {% endfor %}
