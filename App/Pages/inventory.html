@@ -177,9 +177,25 @@
     }
 
     .file-btn {
+        display: block;
         width: 100%;
+        padding: 6px;
+        text-align: center;
+
+        background: rgba(255,255,255,0.02);
+        color: rgba(255,255,255,0.7);
+
         border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 6px;
+
+        cursor: pointer;
     }
+
+    .file-btn:hover {
+        border-color: #38bdf8;
+        background: rgba(56,189,248,0.05);
+    }
+
 
 </style>
 
@@ -295,13 +311,16 @@
         <!-- hidden real file input -->
         <input type="file" name="itemphoto_file" id="itemphoto_file" accept="image/*" style="display:none">
 
-        <!-- styled button -->
+        <!-- styled input-style picker -->
         <label for="itemphoto_file"
-            class="file-btn flex items-center justify-center rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white"
+            class="file-btn"
+            id="fileText"
             style="margin-bottom:10px;">
-            Choose File
+            Choose file...
         </label>
+
         <span id="fileName" style="color:rgba(255,255,255,0.6); font-size:0.85rem;"></span>
+
         <input name="departmentID" id="departmentID" type="number" placeholder="Department ID" required>
 
         <div class="modal-actions">
