@@ -608,8 +608,11 @@ def update_branding():
     return redirect(url_for('appsettings'))
 
 @app.context_processor
-def inject_branding():
-    return dict(branding=session.query(Branding).first())
+def inject_globals():
+    return dict(
+        branding=session.query(Branding).first(),
+        AccountType=AccountType
+    )
 
 @app.route('/appsettings/departments/update/<int:dept_id>', methods=['POST'])
 @business_admin_required

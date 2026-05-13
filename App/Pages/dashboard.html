@@ -190,7 +190,9 @@ This page will have different content depending on who logs in, eg: different "u
         <button onclick="window.location.href='dashboard'" class="w-50 rounded-lg bg-sky-900 py-2 hover:bg-blue-800">Dashboard</button>
         <button onclick="window.location.href='requests'" class="w-50 rounded-lg bg-sky-900 py-2 hover:bg-blue-800">Requests</button>
         <button onclick="window.location.href='inventory'" class="w-50 rounded-lg bg-sky-900 py-2 hover:bg-blue-800">Inventory</button>
+        {% if current_user.accountType == AccountType.business_admin %}
         <button onclick="window.location.href='appsettings'" class="w-50 rounded-lg bg-sky-900 py-2 hover:bg-blue-800">App Settings</button>
+        {% endif %}
     </div>
     
     <!-- Main Content -->
