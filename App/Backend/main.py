@@ -152,6 +152,17 @@ def register():
 @app.route('/inventory')
 @login_required
 def inventory():
+
+    #business_admin ALWAYS allowed
+    if current_user.accountType != "business_admin":
+        is_dept_admin = any(
+            m.role == MembershipRole.admin and m.status == MembershipStatus.accepted
+            for m in current_user.memberships
+        )
+
+        if not is_dept_admin:
+            abort(403)
+
     items = session.query(Inventory).all()
 
     for item in items:
@@ -451,8 +462,11 @@ def approve_request(request_id):
     if not req:
         flash('Request not found', 'error')
         return redirect(url_for('requests_page'))
-    
-    from models import Status
+
+    #permission check
+    if current_user.accountType != AccountType.business_admin and not current_user.is_admin_of(req.departmentID):
+        abort(403)
+
     req.status = Status.approved
     session.commit()
 
@@ -467,11 +481,14 @@ def decline_request(request_id):
     if not req:
         flash('Request not found', 'error')
         return redirect(url_for('requests_page'))
-    
-    from models import Status
+
+    #permission check
+    if current_user.accountType != AccountType.business_admin and not current_user.is_admin_of(req.departmentID):
+        abort(403)
+
     req.status = Status.rejected
     session.commit()
-    
+
     return redirect(url_for('requests_page'))
 
 #late return
