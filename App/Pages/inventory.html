@@ -175,6 +175,12 @@
         padding-left: 16px;
         padding-right: 16px;
     }
+
+    .file-btn {
+        width: 100%;
+        border: 1px solid rgba(255,255,255,0.15);
+    }
+
 </style>
 
 </head>
@@ -286,7 +292,16 @@
         <input name="itemDescription" id="itemDescription" placeholder="Category">
         <input name="itemquantity" id="itemquantity" type="number" placeholder="Quantity" required>
         <input name="itemphoto" id="itemphoto" placeholder="Photo URL">
-        <input type="file" name="itemphoto_file" id="itemphoto_file" accept="image/*">
+        <!-- hidden real file input -->
+        <input type="file" name="itemphoto_file" id="itemphoto_file" accept="image/*" style="display:none">
+
+        <!-- styled button -->
+        <label for="itemphoto_file"
+            class="file-btn flex items-center justify-center rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white"
+            style="margin-bottom:10px;">
+            Choose File
+        </label>
+        <span id="fileName" style="color:rgba(255,255,255,0.6); font-size:0.85rem;"></span>
         <input name="departmentID" id="departmentID" type="number" placeholder="Department ID" required>
 
         <div class="modal-actions">
