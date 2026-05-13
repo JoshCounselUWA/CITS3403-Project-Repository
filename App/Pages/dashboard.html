@@ -262,25 +262,40 @@ This page will have different content depending on who logs in, eg: different "u
 
         <div class="dashboard-section">
             <div class="section-header" onclick="toggleSection('invitations-section')">
-                <h3>Organization Invitations <span class="section-toggle">▼</span></h3>
-            </div>
-            <div class="section-content" id="invitations-section">
-                {% if invitations is defined and invitations %}
-                    {% for invite in invitations %}
-                        <div class="invitation-card">
-                            <div class="card-title">{{ invite.organizationName or 'Organization Invitation' }}</div>
-                            <div class="card-description">Invited by {{ invite.inviterName or 'unknown' }}</div>
-                            <div class="card-meta">Status: {{ invite.status.value }}</div>
-                        </div>
-                    {% endfor %}
-                {% else %}
+        <h3>Department Invitations <span class="section-toggle">▼</span></h3>
+    </div>
+    <div class="section-content" id="invitations-section">
+        {% if pending_invites %}
+            {% for inv in pending_invites %}
+                <div class="invitation-card">
+                    <div class="card-title">{{ inv.department.departmentName }}</div>
+                    <div class="card-description">
+                        You've been invited as <em>{{ inv.role.value }}</em>
+                    </div>
+                    <div class="flex gap-2 mt-3">
+                        <form method="POST" action="/invitations/{{ inv.id }}/accept">
+                            <button type="submit"
+                                    class="rounded-lg bg-emerald-700 hover:bg-emerald-600 px-4 py-2 text-white">
+                                Accept
+                            </button>
+                        </form>
+                        <form method="POST" action="/invitations/{{ inv.id }}/decline">
+                            <button type="submit"
+                                    class="rounded-lg bg-red-900 hover:bg-red-700 px-4 py-2 text-white">
+                                Decline
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
                     <div class="empty-state">
                         <p>No pending invitations.</p>
                     </div>
                 {% endif %}
             </div>
         </div>
-    </div>
+     </div>
 
 </body>
 </html>

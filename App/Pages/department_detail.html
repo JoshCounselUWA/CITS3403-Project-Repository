@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ dept.departmentName }} - DICE</title>
+    <link rel="stylesheet" href="../Static/output.css">
+    <link rel="icon" type="image/x-icon" href="../Static/DICE_favicon.png">
+    <style>
+        body { background: #020617; color: white; font-family: sans-serif; margin: 0; }
+        .topbar { background: #0c4a6e; padding: 12px 20px; display: flex; align-items: center; gap: 16px; }
+        .topbar img { height: 40px; }
+        .content { padding: 24px; }
+        .back-link { color: #38bdf8; text-decoration: none; margin-bottom: 16px; display: inline-block; }
+        .section { background: #020617; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 16px; margin-bottom: 24px; }
+        h2 { margin: 0 0 12px 0; }
+        h3 { margin: 0 0 12px 0; color: rgba(255,255,255,0.8); }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { text-align: left; padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+        th { color: rgba(255,255,255,0.6); font-weight: 600; }
+        .invite-form { display: flex; gap: 10px; align-items: center; }
+        .invite-form input, .invite-form select {
+            padding: 6px 8px; background: rgba(255,255,255,0.02);
+            color: white; border: 1px solid rgba(255,255,255,0.15); border-radius: 6px;
+        }
+        .invite-form button {
+            padding: 8px 16px; background: #075985; color: white;
+            border: none; border-radius: 8px; cursor: pointer;
+        }
+        .invite-form button:hover { background: #0369a1; }
+        .role-badge { padding: 2px 8px; border-radius: 4px; font-size: 0.85em; }
+        .role-admin { background: rgba(56,189,248,0.2); color: #38bdf8; }
+        .role-member { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.8); }
+        .empty { color: rgba(255,255,255,0.4); font-style: italic; }
+        .flash-message { padding: 10px; margin-bottom: 12px; border-radius: 6px; }
+        .flash-error { background: rgba(239,68,68,0.15); }
+        .flash-success { background: rgba(34,197,94,0.15); }
+    </style>
+</head>
+<body>
+    <div class="topbar">
+        <img src="../Static/DICE.png" alt="DICE">
+        <h1>{{ dept.departmentName }}</h1>
+    </div>
+
+    <div class="content">
+        <a class="back-link" href="{{ url_for('appsettings') }}">← Back to App Settings</a>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-message {% if category == 'error' %}flash-error{% else %}flash-success{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="section">
+            <h3>Invite a User</h3>
+            <form class="invite-form" method="POST" action="/departments/{{ dept.departmentID }}/invite">
+                <input type="text" name="username" placeholder="Username" required>
+                <select name="role">
+                    <option value="member">Member</option>
+                    <option value="admin">Admin</option>
+                </select>
+                <button type="submit">Send Invite</button>
+            </form>
+        </div>
+
+        <div class="section">
+            <h3>Active Members ({{ members|length }})</h3>
+            {% if members %}
+                <table>
+                    <thead>
+                        <tr><th>Username</th><th>Name</th><th>Role</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for m in members %}
+                        <tr>
+                            <td>{{ m.user.userName }}</td>
+                            <td>{{ m.user.fName }} {{ m.user.lName }}</td>
+                            <td><span class="role-badge role-{{ m.role.value }}">{{ m.role.value }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p class="empty">No members yet.</p>
+            {% endif %}
+        </div>
+
+        <div class="section">
+            <h3>Pending Invites ({{ pending|length }})</h3>
+            {% if pending %}
+                <table>
+                    <thead>
+                        <tr><th>Username</th><th>Name</th><th>Role</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for m in pending %}
+                        <tr>
+                            <td>{{ m.user.userName }}</td>
+                            <td>{{ m.user.fName }} {{ m.user.lName }}</td>
+                            <td><span class="role-badge role-{{ m.role.value }}">{{ m.role.value }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p class="empty">No pending invites.</p>
+            {% endif %}
+        </div>
+
+        {% if declined %}
+        <div class="section">
+            <h3>Declined ({{ declined|length }})</h3>
+            <table>
+                <thead>
+                    <tr><th>Username</th><th>Name</th></tr>
+                </thead>
+                <tbody>
+                    {% for m in declined %}
+                    <tr>
+                        <td>{{ m.user.userName }}</td>
+                        <td>{{ m.user.fName }} {{ m.user.lName }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

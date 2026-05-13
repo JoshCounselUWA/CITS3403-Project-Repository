@@ -4,26 +4,61 @@ from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session as flask_session
 from forms import LoginForm, RegistrationForm
 from werkzeug.security import check_password_hash, generate_password_hash
-from models import session, Inventory, Request, Account, RequestItems, Status, Department, Branding
+from models import session, Inventory, Request, Account, RequestItems, Status, Department, Branding, AccountType, Membership, MembershipRole, MembershipStatus
 from flask_cors import CORS
-from flask import flash
+from flask import flash, abort
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+from functools import wraps
 
 app = Flask(__name__, template_folder="../Pages", static_folder="../Static")
 app.config['SECRET_KEY'] = 'need_to_change_this_later_secret_key'
 app.config['UPLOAD_FOLDER'] = os.path.join( os.path.dirname(__file__), '..', 'Static','uploads')
 CORS(app)
+login = LoginManager(app)
+login.login_view = 'login'
+
+@app.errorhandler(403)
+def forbidden(e):
+    return render_template('403.html'), 403
+
+@login.user_loader
+def load_user(id):
+    return session.query(Account).get(int(id))
 
 def parse_datetime(value):
     if not value:
         return None
     return datetime.strptime(value, "%Y-%m-%dT%H:%M")
 
+def business_admin_required(f):
+    @wraps(f)
+    @login_required
+    def wrapped(*args, **kwargs):
+        if current_user.accountType != AccountType.business_admin:
+            abort(403)
+        return f(*args, **kwargs)
+    return wrapped
+
+def dept_admin_required(f):
+    @wraps(f)
+    @login_required
+    def wrapped(*args, **kwargs):
+        dept_id = kwargs.get('dept_id') or kwargs.get('department_id')
+        if current_user.accountType == AccountType.business_admin:
+            return f(*args, **kwargs)
+        if dept_id is None or not current_user.is_admin_of(dept_id):
+            abort(403)
+        return f(*args, **kwargs)
+    return wrapped
+
 #view dashboard
 @app.route('/dashboard')
+@login_required
 def dashboard():
     items = session.query(Inventory).all()
     requests = session.query(Request).all()
-    return render_template("dashboard.html", items=items, requests=requests)
+    pending_invites = (session.query(Membership).filter_by(userID=current_user.userID, status=MembershipStatus.pending).all())
+    return render_template("dashboard.html", items=items, requests=requests, pending_invites=pending_invites)
 
 with app.app_context():
     existing = session.query(Account).filter_by(userName='testuser').first()
@@ -33,7 +68,7 @@ with app.app_context():
             lName='User',
             userName='testuser',
             password_hash=generate_password_hash('password123'),
-            accountType='user'
+            accountType=AccountType.business_admin
         )
         session.add(test_user)
         session.commit()
@@ -63,10 +98,18 @@ def login():
             flash('Invalid password')
             return redirect(url_for('login'))
 
+        login_user(user, remember=form.remember_me.data)
         flash(f'Welcome, {user.fName}!')
-        return redirect(url_for('inventory'))
-
+        return redirect(url_for('dashboard'))
+    
     return render_template('login.html', form=form)
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    flash('You have been logged out succesfully')
+    return redirect(url_for('login'))
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -84,7 +127,7 @@ def register():
             lName=form.last_name.data,
             userName=form.username.data,
             password_hash=generate_password_hash(form.password.data),
-            accountType='user'
+            accountType=AccountType.user
         )
         session.add(new_user)
         session.commit()
@@ -96,6 +139,7 @@ def register():
 
 #view inventory
 @app.route('/inventory')
+@login_required
 def inventory():
     items = session.query(Inventory).all()
 
@@ -123,6 +167,7 @@ def inventory():
     return render_template("inventory.html", items=items)
 
 @app.route('/inventory/json')
+@login_required
 def inventory_json():
     items = session.query(Inventory).all()
     result = []
@@ -160,6 +205,7 @@ def inventory_json():
 
 #add inventory
 @app.route('/inventory/add', methods=['POST'])
+@login_required
 def add_inventory():
     image_url = request.form.get('itemphoto')
     image_file = request.files.get('itemphoto_file')
@@ -181,6 +227,7 @@ def add_inventory():
 
 #delete inventory
 @app.route('/inventory/delete/<int:item_id>')
+@login_required
 def delete_inventory(item_id):
     item = session.query(Inventory).get(item_id)
 
@@ -195,6 +242,7 @@ def delete_inventory(item_id):
 
 #update inventory
 @app.route('/inventory/<int:item_id>', methods=['POST'])
+@login_required
 def update_inventory(item_id):
     item = session.query(Inventory).get(item_id)
 
@@ -225,12 +273,14 @@ def update_inventory(item_id):
 
 #view requests
 @app.route('/requests')
+@login_required
 def requests_page():
     requests = session.query(Request).all()
     return render_template("requests.html", requests=requests)
 
 #make request
 @app.route('/requests/add', methods=['POST'])
+@login_required
 def add_request():
     new_request = Request(
         requestTitle=request.form['requestTitle'],
@@ -265,6 +315,7 @@ def add_request():
     return redirect(url_for('requests_page'))
 
 @app.route('/requests/items/<int:request_id>')
+@login_required
 def get_request_items(request_id):
     request_items = session.query(RequestItems).filter_by(requestID=request_id).all()
 
@@ -305,6 +356,7 @@ def get_request_items(request_id):
 
 #delete request
 @app.route('/requests/delete/<int:request_id>')
+@login_required
 def delete_request(request_id):
     req = session.query(Request).get(request_id)
 
@@ -319,6 +371,7 @@ def delete_request(request_id):
 
 #update request
 @app.route('/requests/<int:request_id>', methods=['POST'])
+@login_required
 def update_request(request_id):
     req = session.query(Request).get(request_id)
 
@@ -380,6 +433,7 @@ def update_request(request_id):
 
 #approve
 @app.route('/requests/approve/<int:request_id>', methods=['GET', 'POST'])
+@login_required
 def approve_request(request_id):
     req = session.query(Request).get(request_id)
 
@@ -395,6 +449,7 @@ def approve_request(request_id):
 
 #decline
 @app.route('/requests/decline/<int:request_id>', methods=['GET', 'POST'])
+@login_required
 def decline_request(request_id):
     req = session.query(Request).get(request_id)
 
@@ -410,6 +465,7 @@ def decline_request(request_id):
 
 #late return
 @app.route("/requests/overdue")
+@login_required
 def get_overdue_requests():
     from datetime import datetime
     now = datetime.now()
@@ -423,6 +479,7 @@ def get_overdue_requests():
 
 #upcoming booking
 @app.route("/requests/future")
+@login_required
 def get_future_requests():
     from datetime import datetime
     now = datetime.now()
@@ -436,6 +493,7 @@ def get_future_requests():
 
 #current loans
 @app.route("/requests/current")
+@login_required
 def get_current_requests():
     from datetime import datetime
     now = datetime.now()
@@ -450,6 +508,7 @@ def get_current_requests():
 
 #calender
 @app.route("/requests/calendar")
+@login_required
 def get_calendar_events():
     from datetime import datetime
     now = datetime.now()
@@ -477,6 +536,7 @@ def get_calendar_events():
     })
 
 @app.route('/appsettings')
+@business_admin_required
 def appsettings():
     departments = session.query(Department).all()
     users = session.query(Account).all()
@@ -484,6 +544,7 @@ def appsettings():
 
 
 @app.route('/appsettings/departments/add', methods=['POST'])
+@business_admin_required
 def add_department():
     name = request.form['departmentName']
 
@@ -495,6 +556,7 @@ def add_department():
 
 
 @app.route('/appsettings/departments/delete/<int:dept_id>')
+@business_admin_required
 def delete_department(dept_id):
     dept = session.query(Department).get(dept_id)
 
@@ -506,21 +568,14 @@ def delete_department(dept_id):
 
 
 @app.route('/appsettings/users/<int:user_id>', methods=['POST'])
+@business_admin_required
 def update_user(user_id):
     user = session.query(Account).get(user_id)
 
     if user:
         # update account type (always apply immediately)
         if 'accountType' in request.form:
-            user.accountType = request.form['accountType']
-
-        # check if department changed
-        if 'departmentID' in request.form:
-            new_department = int(request.form['departmentID'])
-
-            if user.departmentID != new_department:
-                user.departmentID = new_department
-                user.inviteAccepted = False  # trigger invite
+            user.accountType = AccountType(request.form['accountType'])
 
         session.commit()
 
@@ -528,6 +583,7 @@ def update_user(user_id):
 
 
 @app.route('/appsettings/branding', methods=['POST'])
+@business_admin_required
 def update_branding():
     url = request.form['logoURL'].strip()
 
@@ -545,6 +601,7 @@ def inject_branding():
     return dict(branding=session.query(Branding).first())
 
 @app.route('/appsettings/departments/update/<int:dept_id>', methods=['POST'])
+@business_admin_required
 def update_department(dept_id):
     dept = session.query(Department).get(dept_id)
 
@@ -553,6 +610,83 @@ def update_department(dept_id):
         session.commit()
 
     return redirect(url_for('appsettings'))
+
+@app.route('/departments/<int:dept_id>')
+@dept_admin_required
+def department_detail(dept_id):
+    dept = session.query(Department).get(dept_id)
+    if not dept:
+        flash('Department not found', 'error')
+        return redirect(url_for('appsettings'))
+    
+    members = (session.query(Membership).filter_by(departmentID=dept_id, status=MembershipStatus.accepted).all())
+    pending = (session.query(Membership).filter_by(departmentID=dept_id, status=MembershipStatus.pending).all())
+    declined = (session.query(Membership).filter_by(departmentID=dept_id, status=MembershipStatus.declined).all())
+    
+    return render_template('department_detail.html', dept=dept, members=members, pending=pending, declined=declined)
+
+@app.route('/departments/<int:dept_id>/invite', methods=['POST'])
+@dept_admin_required
+def invite_user(dept_id):
+    username = request.form.get('username', '').strip()
+    role_str = request.form.get('role', 'member')
+    
+    if not username:
+        flash('Username is required', 'error')
+        return redirect(url_for('appsettings'))
+    
+    invitee = session.query(Account).filter_by(userName=username).first()
+    if not invitee:
+        flash(f'No user found with username -> {username}', 'error')
+        return redirect(url_for('appsettings'))
+    
+    try:
+        role = MembershipRole(role_str)
+    except ValueError:
+        flash('Invalid role', 'error')
+        return redirect(url_for('appsettings'))
+    
+    existing = session.query(Membership).filter_by(userID=invitee.userID, departmentID=dept_id).first()
+    
+    if existing:
+        if existing.status == MembershipStatus.accepted:
+            flash(f'{username} is already a member of this department', 'error')
+            return redirect(url_for('appsettings'))
+        if existing.status == MembershipStatus.pending:
+            flash(f'{username} has not accepted pending invite', 'error')
+            return redirect(url_for('appsettings'))
+        # status == declined → re-invite
+        existing.status = MembershipStatus.pending
+        existing.role = role
+    else:
+        session.add(Membership(userID=invitee.userID, departmentID=dept_id, role=role, status=MembershipStatus.pending,))
+    
+    session.commit()
+    flash(f'Invitation sent to {username}', 'success')
+    return redirect(url_for('appsettings'))
+
+@app.route('/invitations/<int:membership_id>/accept', methods=['POST'])
+@login_required
+def accept_invitation(membership_id):
+    m = session.query(Membership).get(membership_id)
+    if not m or m.userID != current_user.userID or m.status != MembershipStatus.pending:
+        abort(403)
+    m.status = MembershipStatus.accepted
+    session.commit()
+    flash(f'Joined {m.department.departmentName}', 'success')
+    return redirect(url_for('dashboard'))
+
+
+@app.route('/invitations/<int:membership_id>/decline', methods=['POST'])
+@login_required
+def decline_invitation(membership_id):
+    m = session.query(Membership).get(membership_id)
+    if not m or m.userID != current_user.userID or m.status != MembershipStatus.pending:
+        abort(403)
+    m.status = MembershipStatus.declined
+    session.commit()
+    flash('Invitation declined', 'success')
+    return redirect(url_for('dashboard'))
 
 if __name__ == "__main__":
     app.run(debug=True)
