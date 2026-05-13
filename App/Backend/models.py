@@ -36,6 +36,7 @@ class Status(enum.Enum):
     waiting = "Waiting"
     returned = "Returned"
     loaned = "Loaned"
+    overdue = "Overdue"
 
 class MembershipRole(enum.Enum):
     admin = "admin"
