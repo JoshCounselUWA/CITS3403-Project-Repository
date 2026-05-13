@@ -294,11 +294,14 @@
                     {% if status == 'approved' %}
                         <span style="color:#22c55e;">Approved</span>
 
-                    {% elif status == 'rejected' %}
+                    {% elif status == 'declined' %}
                         <span style="color:#ef4444;">Declined</span>
 
                     {% elif status == 'waiting' %}
                         <span style="color:#facc15;">Waiting</span>
+
+                    {% elif status == 'loaned' %}
+                        <span style="color:#256eff;">Loaned</span>
 
                     {% else %}
                         {{ r.status.value }}

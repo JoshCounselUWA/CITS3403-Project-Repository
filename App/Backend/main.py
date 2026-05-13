@@ -641,9 +641,13 @@ def loan_request(request_id):
         flash('Request not found', 'error')
         return redirect(url_for('dashboard'))
 
-    # permission check (same as approve/decline)
-    if current_user.accountType != "business_admin" and not current_user.is_admin_of(req.departmentID):
+    # permission check
+        
+    if (current_user.accountType != "business_admin"
+            and not current_user.is_admin_of(req.departmentID)
+            and current_user.userID != req.requesterID):
         abort(403)
+
 
     # only allow if request is approved
     if req.status.value.lower() != "approved":
