@@ -3,14 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ dept.departmentName }} - DICE</title>
+    <title>DICE - {{ dept.departmentName }}</title>
     <link rel="stylesheet" href="../Static/output.css">
     <link rel="icon" type="image/x-icon" href="../Static/DICE_favicon.png">
     <style>
         body { background: #020617; color: white; font-family: sans-serif; margin: 0; }
         .topbar { background: #0c4a6e; padding: 12px 20px; display: flex; align-items: center; gap: 16px; }
         .topbar img { height: 40px; }
-        .content { padding: 24px; }
+        .content {
+            padding: 24px;
+            padding-top: 88px; /* clears fixed header */
+        }
+
         .back-link { color: #38bdf8; text-decoration: none; margin-bottom: 16px; display: inline-block; }
         .section { background: #020617; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 16px; margin-bottom: 24px; }
         h2 { margin: 0 0 12px 0; }
@@ -38,9 +42,22 @@
     </style>
 </head>
 <body>
-    <div class="topbar">
-        <img src="../Static/DICE.png" alt="DICE">
-        <h1>{{ dept.departmentName }}</h1>
+    <!-- Header -->
+    <div class="fixed top-0 left-0 right-0 z-40 flex h-16 items-center justify-between bg-sky-950 p-3 text-white">
+
+        <!-- LEFT: ALWAYS DICE -->
+        <div class="flex items-center gap-4">
+            <img src="../Static/DICE.png" class="logo h-20">
+            <h1 class="font-bold">{{ dept.departmentName }}</h1>
+        </div>
+
+        <!-- RIGHT: OPTIONAL BRANDING -->
+        <div class="flex items-center" style="position: absolute; right: 20px;">
+            {% if branding and branding.logoURL %}
+                <img src="{{ branding.logoURL }}" style="height: 40px; object-fit: contain;">
+            {% endif %}
+        </div>
+
     </div>
 
     <div class="content">
@@ -62,7 +79,7 @@
                 <input type="text" name="username" placeholder="Username" required>
                 <select name="role">
                     <option value="member">Member</option>
-                    <option value="admin">Admin</option>
+                    <option value="admin">Department Head</option>
                 </select>
                 <button type="submit">Send Invite</button>
             </form>
