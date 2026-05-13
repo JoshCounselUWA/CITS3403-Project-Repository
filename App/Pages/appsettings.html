@@ -280,8 +280,6 @@
                 <th onclick="sortUsersTable(0)">User ID <span class="arrow">↕</span></th>
                 <th onclick="sortUsersTable(1)">Username <span class="arrow">↕</span></th>
                 <th onclick="sortUsersTable(2)">Account Type <span class="arrow">↕</span></th>
-                <th onclick="sortUsersTable(3)">Department <span class="arrow">↕</span></th>
-                <th onclick="sortUsersTable(4)">Invite Status <span class="arrow">↕</span></th>
             </tr>
         </thead>
 
@@ -299,30 +297,6 @@
                         <option value="department_head" {% if u.accountType == 'department_head' %}selected{% endif %}>department_head</option>
                         <option value="admin" {% if u.accountType == 'admin' %}selected{% endif %}>admin</option>
                     </select>
-            </td>
-
-            <td>
-                <form method="POST" action="/appsettings/users/{{ u.userID }}">
-                    <select name="departmentID" onchange="this.form.submit()"
-                        class="bg-white/5 border border-white/20 px-2 py-1 rounded text-white w-full">
-
-                        {% for d in departments %}
-                        <option value="{{ d.departmentID }}"
-                            {% if u.departmentID == d.departmentID %}selected{% endif %}>
-                            {{ d.departmentName }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </form>
-            </td>
-            <td>
-                {% if u.inviteAccepted == True %}
-                    <span style="color:#22c55e;">Accepted</span>
-                {% elif u.inviteAccepted == None %}
-                    <span style="color:#ef4444;">Declined</span>
-                {% else %}
-                    <span style="color:#facc15;">Pending</span>
-                {% endif %}
             </td>
         </tr>
         {% endfor %}
