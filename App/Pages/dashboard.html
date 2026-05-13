@@ -163,6 +163,34 @@ This page will have different content depending on who logs in, eg: different "u
             margin: 0;
             font-size: 1rem;
         }
+
+        .status-declined {
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.2);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: flex-end;
+        }
+
+        .action-btn {
+            width: 120px;
+            text-align: center;
+        }
+
+        .request-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
     </style>
 
 </head>
@@ -184,7 +212,7 @@ This page will have different content depending on who logs in, eg: different "u
         </div>
 
     </div>
-    
+
     <!-- Sidebar -->
     <div class="fixed top-16 bottom-0 left-0 w-64 flex flex-col gap-4 bg-slate-900 p-6 text-white">
         <button onclick="window.location.href='dashboard'" class="w-50 rounded-lg bg-sky-900 py-2 hover:bg-blue-800">Dashboard</button>
@@ -194,39 +222,72 @@ This page will have different content depending on who logs in, eg: different "u
         <button onclick="window.location.href='appsettings'" class="w-50 rounded-lg bg-sky-900 py-2 hover:bg-blue-800">App Settings</button>
         {% endif %}
     </div>
-    
+
     <!-- Main Content -->
     <div class="content-container">
-        {% set current_user_id = current_user_id if current_user_id is defined else None %}
-        {% set user_specific = current_user_id is not none %}
 
+        <!-- Pending Requests -->
         <div class="dashboard-section">
             <div class="section-header" onclick="toggleSection('requests-section')">
                 <h3>Pending Requests <span class="section-toggle">▼</span></h3>
             </div>
             <div class="section-content" id="requests-section">
-                {% set found_requests = false %}
+                {% set ns = namespace(found_requests=false) %}
                 {% for request in requests %}
-                    {% if not user_specific or request.requesterID == current_user_id %}
-                        {% if request.status.value in ['Waiting', 'Approved'] %}
-                            {% set found_requests = true %}
+                    {% if current_user.accountType == "business_admin"
+                        or request.requesterID == current_user.userID
+                        or current_user.is_admin_of(request.departmentID) %}
+                        {% if request.status.value.lower() in ['waiting', 'approved', 'declined'] %}
+                            {% set ns.found_requests = true %}
                             <div class="request-card">
-                                <div class="card-title">{{ request.requestTitle }}</div>
-                                <div class="card-description">{{ request.requestJustification or 'No justification provided' }}</div>
-                                <div class="card-meta">
-                                    Status: <span class="status-{{ request.status.value.lower() }}">{{ request.status.value }}</span>
+
+                                <!-- LEFT -->
+                                <div class="flex-1">
+                                    <div class="card-title">{{ request.requestTitle }}</div>
+                                    <div class="card-description">{{ request.requestJustification or 'No justification provided' }}</div>
+                                    <div class="card-meta">
+                                        Status:
+                                        <span class="status-{{ request.status.value.lower() }}">
+                                            {{ request.status.value }}
+                                        </span>
+                                    </div>
                                 </div>
-                                {% if request.eventDateStart %}
-                                    <div class="card-meta">Event: {{ request.eventDateStart.strftime('%Y-%m-%d') }}</div>
-                                {% endif %}
-                                {% if request.returnDate %}
-                                    <div class="card-meta">Return: {{ request.returnDate.strftime('%Y-%m-%d') }}</div>
-                                {% endif %}
+
+                                <!-- RIGHT SIDE BUTTONS -->
+                                <div class="action-buttons ml-auto mr-4">
+
+                                    {% if request.status.value.lower() == 'approved'
+                                        and (current_user.accountType == "business_admin"
+                                            or current_user.is_admin_of(request.departmentID)
+                                            or current_user.userID == request.requesterID) %}
+                                        <form method="POST" action="/requests/loan/{{ request.requestID }}">
+                                            <button class="action-btn rounded-lg bg-sky-900 hover:bg-blue-800 px-4 py-2 text-white">
+                                                Loan Out
+                                            </button>
+                                        </form>
+                                    {% endif %}
+
+                                    {% if request.status.value.lower() == 'declined' %}
+                                        <form method="POST" action="/requests/resubmit/{{ request.requestID }}">
+                                            <button class="action-btn rounded-lg bg-sky-900 hover:bg-blue-800 px-4 py-2 text-white">
+                                                Resubmit
+                                            </button>
+                                        </form>
+                                        <form method="POST" action="/requests/delete_declined/{{ request.requestID }}">
+                                            <button onclick="return confirm('Delete this request?')"
+                                                    class="action-btn rounded-lg bg-sky-900 hover:bg-blue-800 px-4 py-2 text-white">
+                                                Delete
+                                            </button>
+                                        </form>
+                                    {% endif %}
+
+                                </div>
+
                             </div>
                         {% endif %}
                     {% endif %}
                 {% endfor %}
-                {% if not found_requests %}
+                {% if not ns.found_requests %}
                     <div class="empty-state">
                         <p>No pending requests.</p>
                     </div>
@@ -234,16 +295,19 @@ This page will have different content depending on who logs in, eg: different "u
             </div>
         </div>
 
+        <!-- Active Loans -->
         <div class="dashboard-section">
             <div class="section-header" onclick="toggleSection('loans-section')">
                 <h3>Active Loans <span class="section-toggle">▼</span></h3>
             </div>
             <div class="section-content" id="loans-section">
-                {% set found_loans = false %}
+                {% set ns2 = namespace(found_loans=false) %}
                 {% for request in requests %}
-                    {% if not user_specific or request.requesterID == current_user_id %}
-                        {% if request.status.value == 'Loaned' %}
-                            {% set found_loans = true %}
+                    {% if current_user.accountType == "business_admin"
+                        or request.requesterID == current_user.userID
+                        or current_user.is_admin_of(request.departmentID) %}
+                        {% if request.status.value.lower() == 'loaned' %}
+                            {% set ns2.found_loans = true %}
                             <div class="loan-card">
                                 <div class="card-title">{{ request.requestTitle }}</div>
                                 <div class="card-description">{{ request.requestJustification or 'No justification provided' }}</div>
@@ -254,7 +318,7 @@ This page will have different content depending on who logs in, eg: different "u
                         {% endif %}
                     {% endif %}
                 {% endfor %}
-                {% if not found_loans %}
+                {% if not ns2.found_loans %}
                     <div class="empty-state">
                         <p>No active loans.</p>
                     </div>
@@ -262,42 +326,42 @@ This page will have different content depending on who logs in, eg: different "u
             </div>
         </div>
 
+        <!-- Department Invitations -->
         <div class="dashboard-section">
             <div class="section-header" onclick="toggleSection('invitations-section')">
-        <h3>Department Invitations <span class="section-toggle">▼</span></h3>
-    </div>
-    <div class="section-content" id="invitations-section">
-        {% if pending_invites %}
-            {% for inv in pending_invites %}
-                <div class="invitation-card">
-                    <div class="card-title">{{ inv.department.departmentName }}</div>
-                    <div class="card-description">
-                        You've been invited as <em>{{ inv.role.value }}</em>
-                    </div>
-                    <div class="flex gap-2 mt-3">
-                        <form method="POST" action="/invitations/{{ inv.id }}/accept">
-                            <button type="submit"
-                                    class="rounded-lg bg-emerald-700 hover:bg-emerald-600 px-4 py-2 text-white">
-                                Accept
-                            </button>
-                        </form>
-                        <form method="POST" action="/invitations/{{ inv.id }}/decline">
-                            <button type="submit"
-                                    class="rounded-lg bg-red-900 hover:bg-red-700 px-4 py-2 text-white">
-                                Decline
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            {% endfor %}
-        {% else %}
+                <h3>Department Invitations <span class="section-toggle">▼</span></h3>
+            </div>
+            <div class="section-content" id="invitations-section">
+                {% if pending_invites %}
+                    {% for inv in pending_invites %}
+                        <div class="invitation-card">
+                            <div class="card-title">{{ inv.department.departmentName }}</div>
+                            <div class="card-description">
+                                You've been invited as <em>{{ inv.role.value }}</em>
+                            </div>
+                            <div class="flex gap-2 mt-3">
+                                <form method="POST" action="/invitations/{{ inv.id }}/accept">
+                                    <button type="submit" class="action-btn rounded-lg px-4 py-2 text-white" style="background-color: #047857;" onmouseover="this.style.backgroundColor='#065f46'" onmouseout="this.style.backgroundColor='#047857'">
+                                        Accept
+                                    </button>
+                                </form>
+                                <form method="POST" action="/invitations/{{ inv.id }}/decline">
+                                    <button type="submit" class="action-btn rounded-lg px-4 py-2 text-white" style="background-color: #991b1b;" onmouseover="this.style.backgroundColor='#7f1d1d'" onmouseout="this.style.backgroundColor='#991b1b'">
+                                        Decline
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
                     <div class="empty-state">
                         <p>No pending invitations.</p>
                     </div>
                 {% endif %}
             </div>
         </div>
-     </div>
+
+    </div>
 
 </body>
 </html>

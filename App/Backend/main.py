@@ -251,7 +251,8 @@ def add_inventory():
 @login_required
 def delete_inventory(item_id):
 
-    
+    item = session.query(Inventory).get(item_id)
+
     if not item:
         flash('Item not found', 'error')
         return redirect(url_for('inventory'))
@@ -259,14 +260,8 @@ def delete_inventory(item_id):
     if current_user.accountType != "business_admin" and not current_user.is_admin_of(item.departmentID):
         abort(403)
 
-    item = session.query(Inventory).get(item_id)
-
-    if not item:
-        flash('Item not found', 'error')
-        return redirect(url_for('inventory'))
-    else:
-        session.delete(item)
-        session.commit()
+    session.delete(item)
+    session.commit()
 
     return redirect(url_for('inventory'))
 
@@ -504,7 +499,7 @@ def decline_request(request_id):
     if current_user.accountType != "business_admin" and not current_user.is_admin_of(req.departmentID):
         abort(403)
 
-    req.status = Status.rejected
+    req.status = Status.declined
     session.commit()
 
     return redirect(url_for('requests_page'))
@@ -522,6 +517,61 @@ def get_overdue_requests():
     ).all()
 
     return jsonify([r.to_json() for r in overdue_requests])
+
+# resubmit request
+@app.route('/requests/resubmit/<int:request_id>', methods=['POST'])
+@login_required
+def resubmit_request(request_id):
+    req = session.query(Request).get(request_id)
+
+    if not req:
+        flash('Request not found', 'error')
+        return redirect(url_for('dashboard'))
+
+    # only requester OR admin OR dept head
+    if (current_user.userID != req.requesterID and
+        current_user.accountType != "business_admin" and
+        not current_user.is_admin_of(req.departmentID)):
+        abort(403)
+
+    # only allow if declined
+    if req.status.value.lower() != "declined":
+        flash('Only declined requests can be resubmitted', 'error')
+        return redirect(url_for('dashboard'))
+
+    req.status = Status.waiting
+    session.commit()
+
+    flash('Request resubmitted', 'success')
+    return redirect(url_for('dashboard'))
+
+# delete declined request
+@app.route('/requests/delete_declined/<int:request_id>', methods=['POST'])
+@login_required
+def delete_declined_request(request_id):
+    req = session.query(Request).get(request_id)
+
+    if not req:
+        flash('Request not found', 'error')
+        return redirect(url_for('dashboard'))
+
+    # only requester OR admin OR dept head
+    if (current_user.userID != req.requesterID and
+        current_user.accountType != "business_admin" and
+        not current_user.is_admin_of(req.departmentID)):
+        abort(403)
+
+    # only allow delete if declined
+    if req.status.value.lower() != "declined":
+        flash('Only declined requests can be deleted', 'error')
+        return redirect(url_for('dashboard'))
+
+    session.delete(req)
+    session.commit()
+
+    flash('Request deleted', 'success')
+    return redirect(url_for('dashboard'))
+
 
 #upcoming booking
 @app.route("/requests/future")
@@ -580,6 +630,36 @@ def get_calendar_events():
         "current": [r.to_json() for r in current],
         "overdue": [r.to_json() for r in overdue]
     })
+
+# mark request as loaned
+@app.route('/requests/loan/<int:request_id>', methods=['POST'])
+@login_required
+def loan_request(request_id):
+    req = session.query(Request).get(request_id)
+
+    if not req:
+        flash('Request not found', 'error')
+        return redirect(url_for('dashboard'))
+
+    # permission check
+        
+    if (current_user.accountType != "business_admin"
+            and not current_user.is_admin_of(req.departmentID)
+            and current_user.userID != req.requesterID):
+        abort(403)
+
+
+    # only allow if request is approved
+    if req.status.value.lower() != "approved":
+        flash('Request must be approved first', 'error')
+        return redirect(url_for('dashboard'))
+
+    # update status
+    req.status = Status.loaned
+    session.commit()
+
+    flash('Loan recorded successfully', 'success')
+    return redirect(url_for('dashboard'))
 
 @app.route('/appsettings')
 @business_admin_required
