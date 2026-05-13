@@ -147,7 +147,7 @@ class Account(UserMixin, Base):
     userID = Column(Integer, primary_key=True)
     userName = Column(String, unique=True, nullable=False)
     password_hash = Column(String, nullable=False) 
-    accountType = Column(Enum(AccountType), default=AccountType.user, nullable=False)
+    accountType = Column(String, nullable=False)
 
     memberships = relationship("Membership", back_populates="user", cascade="all, delete-orphan")
 

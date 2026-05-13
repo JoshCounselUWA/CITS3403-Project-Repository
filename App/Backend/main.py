@@ -45,7 +45,7 @@ def business_admin_required(f):
     @wraps(f)
     @login_required
     def wrapped(*args, **kwargs):
-        if current_user.accountType != AccountType.business_admin:
+        if current_user.accountType != "business_admin":
             abort(403)
         return f(*args, **kwargs)
     return wrapped
@@ -55,7 +55,7 @@ def dept_admin_required(f):
     @login_required
     def wrapped(*args, **kwargs):
         dept_id = kwargs.get('dept_id') or kwargs.get('department_id')
-        if current_user.accountType == AccountType.business_admin:
+        if current_user.accountType == "business_admin":
             return f(*args, **kwargs)
         if dept_id is None or not current_user.is_admin_of(dept_id):
             abort(403)
@@ -79,7 +79,7 @@ with app.app_context():
             lName='User',
             userName='testuser',
             password_hash=generate_password_hash('password123'),
-            accountType=AccountType.business_admin
+            accountType="business_admin"
         )
         session.add(test_user)
         session.commit()
@@ -138,7 +138,7 @@ def register():
             lName=form.last_name.data,
             userName=form.username.data,
             password_hash=generate_password_hash(form.password.data),
-            accountType=AccountType.user
+            accountType="user"
         )
         session.add(new_user)
         session.commit()
@@ -586,7 +586,7 @@ def update_user(user_id):
     if user:
         # update account type (always apply immediately)
         if 'accountType' in request.form:
-            user.accountType = AccountType(request.form['accountType'])
+            user.accountType = request.form['accountType']
 
         session.commit()
 
