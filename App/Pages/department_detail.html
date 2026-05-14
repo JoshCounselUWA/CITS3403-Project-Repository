@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DICE - {{ dept.departmentName }}</title>
+    <link rel="stylesheet" href="../Static/output.css">
+    <script src="../Static/script.js" defer></script>
+    <link rel="icon" type="image/x-icon" href="../Static/DICE_favicon.png">
+    <style>
+        body { background: #020617; color: white; font-family: sans-serif; margin: 0; }
+        .topbar { background: #0c4a6e; padding: 12px 20px; display: flex; align-items: center; gap: 16px; }
+        .topbar img { height: 40px; }
+        .content {
+            padding: 24px;
+            padding-top: 88px; /* clears fixed header */
+        }
+
+        .back-link { color: #38bdf8; text-decoration: none; margin-bottom: 16px; display: inline-block; }
+        .section { background: #020617; border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 16px; margin-bottom: 24px; }
+        h2 { margin: 0 0 12px 0; }
+        h3 { margin: 0 0 12px 0; color: rgba(255,255,255,0.8); }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { text-align: left; padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.08); }
+        th { color: rgba(255,255,255,0.6); font-weight: 600; }
+        .invite-form { display: flex; gap: 10px; align-items: center; }
+        .invite-form input {
+            padding: 6px 8px; background: rgba(255,255,255,0.02);
+            color: white; border: 1px solid rgba(255,255,255,0.15); border-radius: 6px;
+        }
+        .invite-form button {
+            padding: 8px 16px; background: #075985; color: white;
+            border: none; border-radius: 8px; cursor: pointer;
+        }
+        .invite-form button:hover { background: #0369a1; }
+        .role-badge { padding: 2px 8px; border-radius: 4px; font-size: 0.85em; }
+        .role-admin { background: rgba(56,189,248,0.2); color: #38bdf8; }
+        .role-member { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.8); }
+        .empty { color: rgba(255,255,255,0.4); font-style: italic; }
+        .flash-message { padding: 10px; margin-bottom: 12px; border-radius: 6px; }
+        .flash-error { background: rgba(239,68,68,0.15); }
+        .flash-success { background: rgba(34,197,94,0.15); }
+
+        select {
+            padding: 6px 8px;
+            background: rgba(255,255,255,0.05);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #38bdf8;
+            background: rgba(56,189,248,0.05);
+        }
+
+        select option {
+            background: #020617;
+            color: white;
+        }
+
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="fixed top-0 left-0 right-0 z-40 flex h-16 items-center justify-between bg-sky-950 p-3 text-white">
+
+        <!-- LEFT: ALWAYS DICE -->
+        <div class="flex items-center gap-4">
+            <img src="../Static/DICE.png" class="logo h-20">
+            <h1 class="font-bold">{{ dept.departmentName }}</h1>
+        </div>
+
+        <!-- RIGHT: OPTIONAL BRANDING -->
+        <div class="flex items-center" style="position: absolute; right: 20px;">
+            {% if branding and branding.logoURL %}
+                <img src="{{ branding.logoURL }}" style="height: 40px; object-fit: contain;">
+            {% endif %}
+        </div>
+
+    </div>
+
+    <div class="content">
+        <a class="back-link" href="{{ url_for('appsettings') }}">← Back to App Settings</a>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    {% if category == 'error' %}
+                        <div class="flash-message flash-error">
+                            {{ message }}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="section">
+            <h3>Invite a User</h3>
+            <form class="invite-form" method="POST" action="/departments/{{ dept.departmentID }}/invite">
+                <input type="text" name="username" placeholder="Username" required>
+                <select name="role">
+                    <option value="member">Member</option>
+                    <option value="admin">Department Head</option>
+                </select>
+                <button type="submit">Send Invite</button>
+            </form>
+        </div>
+
+        <div class="section">
+            <h3>Active Members ({{ members|length }})</h3>
+            {% if members %}
+                <table>
+                    <thead>
+                        <tr><th>Username</th><th>Name</th><th>Role</th><th></th></tr>
+                    </thead>
+                    <tbody>
+                        {% for m in members %}
+                        <tr>
+                            <td>{{ m.user.userName }}</td>
+                            <td>{{ m.user.fName }} {{ m.user.lName }}</td>
+                            <td>
+                                <form method="POST" action="/departments/{{ dept.departmentID }}/member/{{ m.id }}/role">
+                                    <select name="role" onchange="this.form.submit()">
+                                        <option value="member" {% if m.role.value == 'member' %}selected{% endif %}>
+                                            Member
+                                        </option>
+                                        <option value="admin" {% if m.role.value == 'admin' %}selected{% endif %}>
+                                            Department Head
+                                        </option>
+                                    </select>
+                                </form>
+                            </td>
+                            <td>
+                                <button type="button"
+                                        onclick="openRemoveMemberModal('/departments/{{ dept.departmentID }}/remove/{{ m.id }}')"
+                                        style="padding: 4px 12px; background:#991b1b; color:white;
+                                            border:none; border-radius:6px; cursor:pointer; font-size:0.85rem;">
+                                    Remove
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p class="empty">No members yet.</p>
+            {% endif %}
+        </div>
+
+        <div class="section">
+            <h3>Pending Invites ({{ pending|length }})</h3>
+            {% if pending %}
+                <table>
+                    <thead>
+                        <tr><th>Username</th><th>Name</th><th>Role</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for m in pending %}
+                        <tr>
+                            <td>{{ m.user.userName }}</td>
+                            <td>{{ m.user.fName }} {{ m.user.lName }}</td>
+                            <td><span class="role-badge role-{{ m.role.value }}">{{ m.role.value }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <p class="empty">No pending invites.</p>
+            {% endif %}
+        </div>
+
+        {% if declined %}
+        <div class="section">
+            <h3>Declined ({{ declined|length }})</h3>
+            <table>
+                <thead>
+                    <tr><th>Username</th><th>Name</th></tr>
+                </thead>
+                <tbody>
+                    {% for m in declined %}
+                    <tr>
+                        <td>{{ m.user.userName }}</td>
+                        <td>{{ m.user.fName }} {{ m.user.lName }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Remove Member Confirm Modal -->
+    <div id="removeMemberModal"
+        style="display:none; position:fixed; inset:0;
+                background:rgba(2,6,23,0.75); backdrop-filter:blur(4px);
+                align-items:center; justify-content:center; z-index:100;">
+        <div style="background:#020617; padding:20px; width:380px; border-radius:12px;
+                    color:white; border:1px solid rgba(255,255,255,0.08);
+                    box-shadow:0 10px 30px rgba(0,0,0,0.6);">
+            <h2 style="margin-bottom:10px;">Remove Member</h2>
+            <p style="color:#94a3b8; font-size:0.9rem; margin-bottom:20px;">
+                Are you sure you want to remove this member from the department?
+            </p>
+            <div style="display:flex; justify-content:space-between;">
+                <button type="button"
+                        onclick="closeRemoveMemberModal()"
+                        style="padding:8px 16px; background:#0c4a6e; color:white;
+                            border:none; border-radius:8px; cursor:pointer;">
+                    Cancel
+                </button>
+                <button type="button"
+                        id="removeMemberConfirmBtn"
+                        style="padding:8px 16px; background:#991b1b; color:white;
+                            border:none; border-radius:8px; cursor:pointer;">
+                    Remove
+                </button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

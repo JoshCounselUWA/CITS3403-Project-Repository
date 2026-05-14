@@ -12,16 +12,338 @@ This page will have different content depending on who logs in, eg: different "u
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard</title>
+    <title>DICE - Dashboard</title>
 
     <link rel="stylesheet" href="../Static/output.css">
     <script src="../Static/script.js" defer></script>
     <link rel="icon" type="image/x-icon" href="../Static/DICE_favicon.png">
 
     <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+
+        body {
+            overflow: hidden;
+            background: #020617;
+        }
+
         button {
             cursor: pointer;
         }
+
+        .content-container {
+            position: absolute;
+            top: 140px;
+            left: 300px;
+            right: 20px;
+            bottom: 20px;
+            overflow-y: auto;
+        }
+
+        .dashboard-section {
+            background: #020617;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.08);
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+
+        .section-header {
+            background: #0c4a6e;
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            cursor: pointer;
+            user-select: none;
+            transition: background-color 0.2s ease;
+        }
+
+        .section-header:hover {
+            background: #0d5a7a;
+        }
+
+        .section-header.collapsed {
+            border-bottom: none;
+        }
+
+        .section-header h3 {
+            margin: 0;
+            color: white;
+            font-weight: 600;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .section-toggle {
+            font-size: 1.2rem;
+            color: rgba(255,255,255,0.7);
+            transition: transform 0.2s ease;
+        }
+
+        .section-header.collapsed .section-toggle {
+            transform: rotate(-90deg);
+        }
+
+        .section-content {
+            padding: 20px;
+        }
+
+        .request-card, .loan-card, .invitation-card {
+            background: rgba(255,255,255,0.02);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .request-card:hover, .loan-card:hover, .invitation-card:hover {
+            background: rgba(56,189,248,0.1);
+            border-color: rgba(56,189,248,0.3);
+        }
+
+        .card-title {
+            font-weight: 600;
+            color: white;
+            margin-bottom: 8px;
+        }
+
+        .card-description {
+            color: #cbd5e1;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+
+        .card-meta {
+            color: #94a3b8;
+            font-size: 0.8rem;
+        }
+
+        .status-waiting {
+            color: #f59e0b;
+            background: rgba(245, 158, 11, 0.2);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .status-approved {
+            color: #22c55e;
+            background: rgba(34, 197, 94, 0.2);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .status-loaned {
+            color: #3b82f6;
+            background: rgba(59, 130, 246, 0.2);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .due-date {
+            color: #ef4444;
+            font-weight: 600;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #64748b;
+            padding: 40px 20px;
+        }
+
+        .empty-state p {
+            margin: 0;
+            font-size: 1rem;
+        }
+
+        .status-declined {
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.2);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: flex-end;
+        }
+
+        .action-btn {
+            width: 120px;
+            text-align: center;
+        }
+
+        .request-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(2, 6, 23, 0.75);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .modal {
+            background: #020617;
+            padding: 20px;
+            width: 380px;
+            border-radius: 12px;
+            color: white;
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+        }
+
+        .modal h2 {
+            margin-bottom: 10px;
+        }
+
+        .modal p {
+            color: #94a3b8;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .status-overdue {
+            color: #f97316;
+            background: rgba(249, 115, 22, 0.2);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .overdue-card {
+            background: rgba(249, 115, 22, 0.05);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(249, 115, 22, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .overdue-card:hover {
+            background: rgba(249, 115, 22, 0.1);
+            border-color: rgba(249, 115, 22, 0.5);
+        }
+
+        .overdue-alert {
+            background: rgba(249, 115, 22, 0.15);
+            border: 1px solid rgba(249, 115, 22, 0.4);
+            border-radius: 6px;
+            padding: 8px 12px;
+            color: #f97316;
+            font-size: 0.85rem;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .user-panel-btn {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            padding: 0 24px;
+        }
+
+        .user-panel-btn button {
+            width: 100%;
+            text-align: left;
+            padding: 10px 12px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+
+        .user-panel-btn button:hover {
+            background: rgba(255,255,255,0.08);
+        }
+
+        .user-popout {
+            position: fixed;
+            bottom: 52px;
+            left: 0;
+            width: 480px;
+            background: #0f172a;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 16px;
+            z-index: 99;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .user-popout.open {
+            display: flex;
+        }
+
+        .user-popout input {
+            width: 100%;
+            padding: 6px 8px;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 6px;
+            color: white;
+            font-size: 0.85rem;
+            box-sizing: border-box;
+        }
+
+        .user-popout input:focus {
+            outline: none;
+            border-color: #38bdf8;
+            background: rgba(56,189,248,0.05);
+        }
+
+        .user-popout label {
+            color: rgba(255,255,255,0.5);
+            font-size: 0.75rem;
+            margin-bottom: 2px;
+            display: block;
+        }
+
+        .user-popout-divider {
+            border: none;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            margin: 4px 0;
+        }
+
     </style>
 
 </head>
@@ -43,22 +365,375 @@ This page will have different content depending on who logs in, eg: different "u
         </div>
 
     </div>
-    
+
     <!-- Sidebar -->
     <div class="fixed top-16 bottom-0 left-0 w-64 flex flex-col gap-4 bg-slate-900 p-6 text-white">
         <button onclick="window.location.href='dashboard'" class="w-50 rounded-lg bg-sky-900 py-2 hover:bg-blue-800">Dashboard</button>
         <button onclick="window.location.href='requests'" class="w-50 rounded-lg bg-sky-900 py-2 hover:bg-blue-800">Requests</button>
         <button onclick="window.location.href='inventory'" class="w-50 rounded-lg bg-sky-900 py-2 hover:bg-blue-800">Inventory</button>
+        {% if current_user.accountType == "business_admin" %}
         <button onclick="window.location.href='appsettings'" class="w-50 rounded-lg bg-sky-900 py-2 hover:bg-blue-800">App Settings</button>
+        {% endif %}
     </div>
-    
+
     <!-- Main Content -->
-     <div class="fixed top-16 bottom-0 left-64 right-0 flex justify-center items-center">
-        <div>
-                <h2 class="text-2xl font-bold p-2 text-white">Welcome to your Dashboard</h2>
-                <p class="text-white">Here you can view your current loans and requests.</p>
+    <div class="content-container">
+
+        <!-- Pending Requests -->
+        <div class="dashboard-section">
+            <div class="section-header" onclick="toggleSection('requests-section')">
+                <h3>Pending Requests <span class="section-toggle">▼</span></h3>
+            </div>
+            <div class="section-content" id="requests-section">
+                {% set ns = namespace(found_requests=false) %}
+                {% for request in requests %}
+                    {% if current_user.accountType == "business_admin"
+                        or request.requesterID == current_user.userID
+                        or current_user.is_admin_of(request.departmentID) %}
+                        {% if request.status.value.lower() in ['waiting', 'approved', 'declined'] %}
+                            {% set ns.found_requests = true %}
+                            <div class="request-card">
+
+                                <!-- LEFT -->
+                                <div class="flex-1">
+                                    <div class="card-title">{{ request.requestTitle }}</div>
+                                    <div class="card-description">{{ request.requestJustification or 'No justification provided' }}</div>
+                                    <div class="card-meta">
+                                        Status:
+                                        <span class="status-{{ request.status.value.lower() }}">
+                                            {{ request.status.value }}
+                                        </span>
+                                    </div>
+                                    <div class="card-meta" style="margin-top:4px;">
+                                        Requester: {{ request.requester.userName if request.requester else 'Unknown' }}
+                                        &nbsp;·&nbsp;
+                                        Dept: {{ request.department.departmentName if request.department else '-' }}
+                                    </div>
+                                </div>
+
+                                <!-- RIGHT SIDE BUTTONS -->
+                                <div class="action-buttons ml-auto mr-4">
+
+                                    {% if request.status.value.lower() == 'approved'
+                                        and (current_user.accountType == "business_admin"
+                                            or current_user.is_admin_of(request.departmentID)
+                                            or current_user.userID == request.requesterID) %}
+                                        <form method="POST" action="/requests/loan/{{ request.requestID }}">
+                                            <button class="action-btn rounded-lg bg-sky-900 hover:bg-blue-800 px-4 py-2 text-white">
+                                                Loan Out
+                                            </button>
+                                        </form>
+                                    {% endif %}
+
+                                    {% if request.status.value.lower() == 'declined' %}
+                                        <form method="POST" action="/requests/resubmit/{{ request.requestID }}">
+                                            <button class="action-btn rounded-lg bg-sky-900 hover:bg-blue-800 px-4 py-2 text-white">
+                                                Resubmit
+                                            </button>
+                                        </form>
+                                        <form method="POST" action="/requests/delete_declined/{{ request.requestID }}">
+                                            <button type="button"
+                                                    onclick="openDeleteModal('/requests/delete_declined/{{ request.requestID }}')"
+                                                    class="action-btn rounded-lg bg-sky-900 hover:bg-blue-800 px-4 py-2 text-white">
+                                                Delete
+                                            </button>
+                                        </form>
+                                    {% endif %}
+
+                                </div>
+
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+                {% if not ns.found_requests %}
+                    <div class="empty-state">
+                        <p>No pending requests.</p>
+                    </div>
+                {% endif %}
+            </div>
         </div>
-     </div>
+
+        <!-- Active Loans -->
+        <div class="dashboard-section">
+            <div class="section-header" onclick="toggleSection('loans-section')">
+                <h3>Active Loans <span class="section-toggle">▼</span></h3>
+            </div>
+            <div class="section-content" id="loans-section">
+                {% set ns2 = namespace(found_loans=false) %}
+                {% for request in requests %}
+                    {% if current_user.accountType == "business_admin"
+                        or request.requesterID == current_user.userID
+                        or current_user.is_admin_of(request.departmentID) %}
+                        {% if request.status.value.lower() == 'loaned' %}
+                            {% set ns2.found_loans = true %}
+                            <div class="loan-card" style="display:flex; align-items:center; justify-content:space-between;">
+                                <div class="flex-1">
+                                    <div class="card-title">{{ request.requestTitle }}</div>
+                                    <div class="card-description">{{ request.requestJustification or 'No justification provided' }}</div>
+                                    <div class="card-meta">
+                                        Due: <span class="due-date">{{ request.returnDate.strftime('%Y-%m-%d') if request.returnDate else 'N/A' }}</span>
+                                    </div>
+                                    <div class="card-meta" style="margin-top:4px;">
+                                        Requester: {{ request.requester.userName if request.requester else 'Unknown' }}
+                                        &nbsp;·&nbsp;
+                                        Dept: {{ request.department.departmentName if request.department else '-' }}
+                                    </div>
+                                </div>
+
+                                <div class="ml-auto mr-4">
+                                    <form method="POST" action="/requests/return/{{ request.requestID }}">
+                                        <button type="submit"
+                                                class="action-btn rounded-lg bg-sky-900 hover:bg-blue-800 px-4 py-2 text-white">
+                                            Return
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+                {% if not ns2.found_loans %}
+                    <div class="empty-state">
+                        <p>No active loans.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Overdue Loans -->
+        {% set ns3 = namespace(found_overdue=false) %}
+        {% for request in requests %}
+            {% if current_user.accountType == "business_admin"
+                or request.requesterID == current_user.userID
+                or current_user.is_admin_of(request.departmentID) %}
+                {% if request.status.value.lower() == 'overdue' %}
+                    {% set ns3.found_overdue = true %}
+                {% endif %}
+            {% endif %}
+        {% endfor %}
+
+        {% if ns3.found_overdue %}
+        <div class="dashboard-section">
+            <div class="section-header" onclick="toggleSection('overdue-section')"
+                style="background:#7c2d12;">
+                <h3>⚠ Overdue Loans <span class="section-toggle">▼</span></h3>
+            </div>
+            <div class="section-content" id="overdue-section">
+
+                <div class="overdue-alert">
+                    ⚠ These loans have passed their return date and require immediate attention.
+                </div>
+
+                {% for request in requests %}
+                    {% if current_user.accountType == "business_admin"
+                        or request.requesterID == current_user.userID
+                        or current_user.is_admin_of(request.departmentID) %}
+                        {% if request.status.value.lower() == 'overdue' %}
+
+                        <div class="overdue-card">
+                            <div class="flex-1">
+                                <div class="card-title">{{ request.requestTitle }}</div>
+                                <div class="card-description">{{ request.requestJustification or 'No justification provided' }}</div>
+                                <div class="card-meta">
+                                    Status: <span class="status-overdue">Overdue</span>
+                                </div>
+                                <div class="card-meta" style="margin-top:4px;">
+                                    Was due: <span class="due-date">{{ request.returnDate.strftime('%Y-%m-%d') if request.returnDate else 'N/A' }}</span>
+                                </div>
+                                <div class="card-meta" style="margin-top:4px;">
+                                    Requester: {{ request.requester.userName if request.requester else 'Unknown' }}
+                                    &nbsp;·&nbsp;
+                                    Dept: {{ request.department.departmentName if request.department else '-' }}
+                                </div>
+                            </div>
+
+                            <div class="ml-auto mr-4">
+                                <form method="POST" action="/requests/return/{{ request.requestID }}">
+                                    <button type="submit"
+                                            class="action-btn rounded-lg bg-sky-900 hover:bg-blue-800 px-4 py-2 text-white">
+                                        Return
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Department Invitations -->
+        <div class="dashboard-section">
+            <div class="section-header" onclick="toggleSection('invitations-section')">
+                <h3>Department Invitations <span class="section-toggle">▼</span></h3>
+            </div>
+            <div class="section-content" id="invitations-section">
+                {% if pending_invites %}
+                    {% for inv in pending_invites %}
+                        <div class="invitation-card">
+                            <div class="card-title">{{ inv.department.departmentName }}</div>
+                            <div class="card-description">
+                                You've been invited as <em>{{ inv.role.value }}</em>
+                            </div>
+                            <div class="flex gap-2 mt-3">
+                                <form method="POST" action="/invitations/{{ inv.id }}/accept">
+                                    <button type="submit" class="action-btn rounded-lg px-4 py-2 text-white" style="background-color: #047857;" onmouseover="this.style.backgroundColor='#065f46'" onmouseout="this.style.backgroundColor='#047857'">
+                                        Accept
+                                    </button>
+                                </form>
+                                <form method="POST" action="/invitations/{{ inv.id }}/decline">
+                                    <button type="submit" class="action-btn rounded-lg px-4 py-2 text-white" style="background-color: #991b1b;" onmouseover="this.style.backgroundColor='#7f1d1d'" onmouseout="this.style.backgroundColor='#991b1b'">
+                                        Decline
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <p>No pending invitations.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Delete Confirm Modal -->
+    <div class="modal-overlay" id="deleteConfirmModal">
+        <div class="modal">
+            <h2>Delete Request</h2>
+            <p>Are you sure you want to delete this request? This cannot be undone.</p>
+            <div class="modal-actions">
+                <button type="button"
+                        onclick="closeDeleteModal()"
+                        class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white"
+                        style="padding-left:16px; padding-right:16px;">
+                    Cancel
+                </button>
+                <form id="deleteConfirmForm" method="POST">
+                    <button type="submit"
+                            class="rounded-lg py-2 text-white"
+                            style="background:#991b1b; padding-left:16px; padding-right:16px;">
+                        Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+<!-- User Popout Panel -->
+<div class="user-popout" id="userPopout" style="width:480px;">
+
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <span style="font-size:0.75rem; color:rgba(255,255,255,0.4);">Account Settings</span>
+        <form method="POST" action="/logout">
+            <button type="submit"
+                    class="rounded-lg py-1 text-white"
+                    style="background:#991b1b; padding:6px 16px; font-size:0.8rem;">
+                Sign Out
+            </button>
+        </form>
+    </div>
+
+    <form method="POST" action="/account/update">
+        <label>First Name</label>
+        <input name="fName" value="{{ current_user.fName }}" placeholder="First Name">
+
+        <label>Last Name</label>
+        <input name="lName" value="{{ current_user.lName }}" placeholder="Last Name">
+
+        <label>Username</label>
+        <input name="userName" value="{{ current_user.userName }}" placeholder="Username">
+
+        <button type="submit"
+                class="w-50 rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white"
+                style="margin-top:30px; width:40%;">
+            Save Changes
+        </button>
+
+        <button type="button"
+                onclick="openChangePasswordModal()"
+                class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white"
+                style="width:40%; margin-top:4px;">
+            Change Password
+        </button>
+        
+    </form>
+
+</div>
+
+<!-- Click outside to close -->
+<div id="userPanelBackdrop"
+     style="display:none; position:fixed; inset:0; z-index:97;"
+     onclick="closeUserPanel()">
+</div>
+
+<!-- User Account Button (fixed bottom left) -->
+<button onclick="toggleUserPanel()"
+        style="position:fixed; bottom:0; left:0; width:256px; z-index:98;
+               padding:20px 20px;
+               background:#0f172a;
+               border:none;
+               border-top:1px solid rgba(255,255,255,0.08);
+               color:white;
+               text-align:left;
+               display:flex;
+               align-items:center;
+               gap:10px;
+               font-size:1.2rem;
+               cursor:pointer;">
+    👤 {{ current_user.fName }} {{ current_user.lName }}
+</button>
+
+<!-- Change Password Modal -->
+<div class="modal-overlay" id="changePasswordModal">
+    <div class="modal">
+        <h2>Change Password</h2>
+        <form id="changePasswordForm" action="/account/password" method="POST">
+            <label style="color:rgba(255,255,255,0.5); font-size:0.8rem;">Current Password</label>
+            <input name="current_password" type="password" placeholder="Current Password"
+                   style="width:100%; padding:6px; margin-bottom:10px;
+                          background:rgba(255,255,255,0.02); color:white;
+                          border:1px solid rgba(255,255,255,0.15); border-radius:6px;
+                          box-sizing:border-box;">
+
+            <label style="color:rgba(255,255,255,0.5); font-size:0.8rem;">New Password</label>
+            <input name="new_password" type="password" placeholder="New Password"
+                   style="width:100%; padding:6px; margin-bottom:10px;
+                          background:rgba(255,255,255,0.02); color:white;
+                          border:1px solid rgba(255,255,255,0.15); border-radius:6px;
+                          box-sizing:border-box;">
+
+            <label style="color:rgba(255,255,255,0.5); font-size:0.8rem;">Confirm New Password</label>
+            <input name="confirm_password" type="password" placeholder="Confirm Password"
+                   style="width:100%; padding:6px; margin-bottom:16px;
+                          background:rgba(255,255,255,0.02); color:white;
+                          border:1px solid rgba(255,255,255,0.15); border-radius:6px;
+                          box-sizing:border-box;">
+            <p id="passwordError"
+            style="color:#ef4444; font-size:0.85rem; margin-bottom:10px; min-height:18px;">
+            </p>
+            <div class="modal-actions">
+                <button type="button"
+                        onclick="closeChangePasswordModal()"
+                        class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white"
+                        style="padding-left:16px; padding-right:16px;">
+                    Cancel
+                </button>
+                <button type="submit"
+                        class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white"
+                        style="padding-left:16px; padding-right:16px;">
+                    Update Password
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 
 </body>
 </html>

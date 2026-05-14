@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventory</title>
+    <title>DICE - App Settings</title>
 
 <link rel="stylesheet" href="../Static/output.css">
 <script src="../Static/script.js" defer></script>
@@ -167,6 +167,56 @@
         padding-right: 24px;
     }
 
+    .user-popout {
+        position: fixed;
+        bottom: 52px;
+        left: 0;
+        width: 480px;
+        background: #0f172a;
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 12px;
+        padding: 16px;
+        z-index: 99;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        display: none;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .user-popout.open {
+        display: flex;
+    }
+
+    .user-popout input {
+        width: 100%;
+        padding: 6px 8px;
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 6px;
+        color: white;
+        font-size: 0.85rem;
+        box-sizing: border-box;
+    }
+
+    .user-popout input:focus {
+        outline: none;
+        border-color: #38bdf8;
+        background: rgba(56,189,248,0.05);
+    }
+
+    .user-popout label {
+        color: rgba(255,255,255,0.5);
+        font-size: 0.75rem;
+        margin-bottom: 2px;
+        display: block;
+    }
+
+    .user-popout-divider {
+        border: none;
+        border-top: 1px solid rgba(255,255,255,0.08);
+        margin: 4px 0;
+    }
+
 </style>
 
 </head>
@@ -250,16 +300,23 @@
             <td>{{ d.departmentName }}</td>
 
             <td class="actions">
+
+                <a href="/departments/{{ d.departmentID }}">
+                    <button class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
+                    Manage
+                    </button>
+                </a>
+                
                 <button onclick="openUpdateDepartmentModal('{{ d.departmentID }}','{{ d.departmentName|escape }}')" 
                     class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
                     Update
                 </button>
 
-                <a href="/appsettings/departments/delete/{{ d.departmentID }}">
-                    <button class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
-                        Delete
-                    </button>
-                </a>
+                <button type="button"
+                        onclick="openDeleteDepartmentModal('/appsettings/departments/delete/{{ d.departmentID }}')"
+                        class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
+                    Delete
+                </button>
             </td>
         </tr>
         {% endfor %}
@@ -273,8 +330,7 @@
                 <th onclick="sortUsersTable(0)">User ID <span class="arrow">↕</span></th>
                 <th onclick="sortUsersTable(1)">Username <span class="arrow">↕</span></th>
                 <th onclick="sortUsersTable(2)">Account Type <span class="arrow">↕</span></th>
-                <th onclick="sortUsersTable(3)">Department <span class="arrow">↕</span></th>
-                <th onclick="sortUsersTable(4)">Invite Status <span class="arrow">↕</span></th>
+                <th class="actions">Actions</th>
             </tr>
         </thead>
 
@@ -285,36 +341,34 @@
             <td>{{ u.userName }}</td>
 
             <td>
-                <form method="POST" action="/appsettings/users/{{ u.userID }}">
-                    <select name="accountType" onchange="this.form.submit()" class="bg-white/5 border border-white/20 px-2 py-1 rounded text-white w-full">
-
-                        <option value="user" {% if u.accountType == 'user' %}selected{% endif %}>user</option>
-                        <option value="department_head" {% if u.accountType == 'department_head' %}selected{% endif %}>department_head</option>
-                        <option value="admin" {% if u.accountType == 'admin' %}selected{% endif %}>admin</option>
-                    </select>
-            </td>
-
-            <td>
-                <form method="POST" action="/appsettings/users/{{ u.userID }}">
-                    <select name="departmentID" onchange="this.form.submit()"
-                        class="bg-white/5 border border-white/20 px-2 py-1 rounded text-white w-full">
-
-                        {% for d in departments %}
-                        <option value="{{ d.departmentID }}"
-                            {% if u.departmentID == d.departmentID %}selected{% endif %}>
-                            {{ d.departmentName }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </form>
-            </td>
-            <td>
-                {% if u.inviteAccepted == True %}
-                    <span style="color:#22c55e;">Accepted</span>
-                {% elif u.inviteAccepted == None %}
-                    <span style="color:#ef4444;">Declined</span>
+                {% if u.userID != current_user.userID %}
+                    <form method="POST" action="/appsettings/users/{{ u.userID }}">
+                        <select name="accountType"
+                            onchange="this.form.submit()"
+                            class="bg-white/5 border border-white/20 px-2 py-1 rounded text-white"
+                            style="width:auto;">
+                            <option value="user" {% if u.accountType == 'user' %}selected{% endif %}>
+                                user
+                            </option>
+                            <option value="business_admin" {% if u.accountType == 'business_admin' %}selected{% endif %}>
+                                business_admin
+                            </option>
+                        </select>
+                    </form>
                 {% else %}
-                    <span style="color:#facc15;">Pending</span>
+                    <span style="color:rgba(255,255,255,0.6);">
+                        {{ u.accountType }}
+                    </span>
+                {% endif %}
+            </td>
+
+            <td class="actions">
+                {% if u.userID != current_user.userID %}
+                    <button type="button"
+                            onclick="openDeleteUserModal('/appsettings/users/delete/{{ u.userID }}')"
+                            class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
+                        Delete
+                    </button>
                 {% endif %}
             </td>
         </tr>
@@ -361,5 +415,161 @@
     </form>
 </div>
 
+<!-- Delete User Confirm Modal -->
+<div class="modal-overlay" id="deleteUserModal">
+    <div class="modal">
+        <h2>Delete Account</h2>
+        <p style="color:#94a3b8; font-size:0.9rem; margin-bottom:20px;">
+            Are you sure you want to delete this account? This cannot be undone.
+        </p>
+        <div class="modal-actions">
+            <button type="button"
+                    onclick="closeDeleteUserModal()"
+                    class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white"
+                    style="padding-left:16px; padding-right:16px;">
+                Cancel
+            </button>
+            <button type="button"
+                    id="deleteUserConfirmBtn"
+                    style="background:#991b1b; padding-left:16px; padding-right:16px;"
+                    class="rounded-lg py-2 text-white">
+                Delete
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Department Confirm Modal -->
+<div class="modal-overlay" id="deleteDepartmentModal">
+    <div class="modal">
+        <h2>Delete Department</h2>
+        <p style="color:#94a3b8; font-size:0.9rem; margin-bottom:20px;">
+            Are you sure? This will also delete all inventory and requests for this department.
+        </p>
+        <div class="modal-actions">
+            <button type="button"
+                    onclick="closeDeleteDepartmentModal()"
+                    class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white"
+                    style="padding-left:16px; padding-right:16px;">
+                Cancel
+            </button>
+            <button type="button"
+                    id="deleteDepartmentConfirmBtn"
+                    style="background:#991b1b; padding-left:16px; padding-right:16px;"
+                    class="rounded-lg py-2 text-white">
+                Delete
+            </button>
+        </div>
+    </div>
+</div>
+<!-- User Popout Panel -->
+<div class="user-popout" id="userPopout" style="width:480px;">
+
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <span style="font-size:0.75rem; color:rgba(255,255,255,0.4);">Account Settings</span>
+        <form method="POST" action="/logout">
+            <button type="submit"
+                    class="rounded-lg py-1 text-white"
+                    style="background:#991b1b; padding:6px 16px; font-size:0.8rem;">
+                Sign Out
+            </button>
+        </form>
+    </div>
+
+    <form method="POST" action="/account/update">
+        <label>First Name</label>
+        <input name="fName" value="{{ current_user.fName }}" placeholder="First Name">
+
+        <label>Last Name</label>
+        <input name="lName" value="{{ current_user.lName }}" placeholder="Last Name">
+
+        <label>Username</label>
+        <input name="userName" value="{{ current_user.userName }}" placeholder="Username">
+
+        <button type="submit"
+                class="w-50 rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white"
+                style="margin-top:30px; width:40%;">
+            Save Changes
+        </button>
+
+        <button type="button"
+                onclick="openChangePasswordModal()"
+                class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white"
+                style="width:40%; margin-top:4px;">
+            Change Password
+        </button>
+    </form>
+
+</div>
+
+<!-- Click outside to close -->
+<div id="userPanelBackdrop"
+     style="display:none; position:fixed; inset:0; z-index:97;"
+     onclick="closeUserPanel()">
+</div>
+
+<!-- User Account Button (fixed bottom left) -->
+<button onclick="toggleUserPanel()"
+        style="position:fixed; bottom:0; left:0; width:256px; z-index:98;
+               padding:20px 20px;
+               background:#0f172a;
+               border:none;
+               border-top:1px solid rgba(255,255,255,0.08);
+               color:white;
+               text-align:left;
+               display:flex;
+               align-items:center;
+               gap:10px;
+               font-size:1.2rem;
+               cursor:pointer;">
+    👤 {{ current_user.fName }} {{ current_user.lName }}
+</button>
+
+<!-- Change Password Modal -->
+<div class="modal-overlay" id="changePasswordModal">
+    <div class="modal">
+        <h2>Change Password</h2>
+        <form id="changePasswordForm" action="/account/password" method="POST">
+            <label style="color:rgba(255,255,255,0.5); font-size:0.8rem;">Current Password</label>
+            <input name="current_password" type="password" placeholder="Current Password"
+                   style="width:100%; padding:6px; margin-bottom:10px;
+                          background:rgba(255,255,255,0.02); color:white;
+                          border:1px solid rgba(255,255,255,0.15); border-radius:6px;
+                          box-sizing:border-box;">
+
+            <label style="color:rgba(255,255,255,0.5); font-size:0.8rem;">New Password</label>
+            <input name="new_password" type="password" placeholder="New Password"
+                   style="width:100%; padding:6px; margin-bottom:10px;
+                          background:rgba(255,255,255,0.02); color:white;
+                          border:1px solid rgba(255,255,255,0.15); border-radius:6px;
+                          box-sizing:border-box;">
+
+            <label style="color:rgba(255,255,255,0.5); font-size:0.8rem;">Confirm New Password</label>
+            <input name="confirm_password" type="password" placeholder="Confirm Password"
+                   style="width:100%; padding:6px; margin-bottom:16px;
+                          background:rgba(255,255,255,0.02); color:white;
+                          border:1px solid rgba(255,255,255,0.15); border-radius:6px;
+                          box-sizing:border-box;">
+
+            <p id="passwordError"
+               style="color:#ef4444; font-size:0.85rem; margin-bottom:10px; min-height:18px;">
+            </p>
+
+            <div class="modal-actions">
+                <button type="button"
+                        onclick="closeChangePasswordModal()"
+                        class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white"
+                        style="padding-left:16px; padding-right:16px;">
+                    Cancel
+                </button>
+                <button type="submit"
+                        class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white"
+                        style="padding-left:16px; padding-right:16px;">
+                    Update Password
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 </body>
 </html>

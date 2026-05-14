@@ -12,8 +12,10 @@ function sortRequestsTable(col) {
     const asc = requestsSortState[col];
 
     rows.sort((a, b) => {
-        let A = a.cells[col].innerText.trim();
-        let B = b.cells[col].innerText.trim();
+        
+        let A = a.cells[col].dataset.sort ?? a.cells[col].innerText.trim();
+        let B = b.cells[col].dataset.sort ?? b.cells[col].innerText.trim();
+
         const numA = parseFloat(A);
         const numB = parseFloat(B);
         if (!isNaN(numA) && !isNaN(numB)) return asc ? numA - numB : numB - numA;
@@ -37,7 +39,7 @@ function openAddModal() {
     document.getElementById("modal").style.display = "flex";
 }
 
-function openUpdateModal(id, title, justification, eventDateStart, eventDateEnd, returnDate) {
+function openUpdateModal(id, title, justification, eventDateStart, eventDateEnd, returnDate, deptID) {
     document.getElementById("modalTitle").innerText = "Update Request";
     document.getElementById("modalSubmitBtn").innerText = "Update";
     document.getElementById("requestForm").action = "/requests/" + id;
@@ -53,6 +55,12 @@ function openUpdateModal(id, title, justification, eventDateStart, eventDateEnd,
     if (eventDateEndField) eventDateEndField.value = eventDateEnd || "";
     if (returnDateField) returnDateField.value = returnDate || "";
     updateDateInputColours();
+
+    
+    const deptSelect = document.getElementById("departmentID");
+    if (deptSelect && deptID) {
+        deptSelect.value = deptID;
+    }
 
     resetItemPicker();
 
@@ -142,9 +150,21 @@ async function loadInventoryItems() {
     }
 }
 
+function getSelectedDepartmentID() {
+    const select = document.getElementById("departmentID");
+    return select ? select.value : "";
+}
+
 function filterItemDropdown() {
     const query = document.getElementById("itemSearch").value.toLowerCase();
     const dropdown = document.getElementById("itemDropdown");
+    const deptID = getSelectedDepartmentID();
+
+    if (!deptID) {
+        dropdown.innerHTML = "<div style='padding:8px 10px; color:rgba(255,255,255,0.4); font-size:0.85rem;'>Select a department first.</div>";
+        dropdown.style.display = query ? "block" : "none";
+        return;
+    }
 
     if (!query) {
         dropdown.style.display = "none";
@@ -152,7 +172,9 @@ function filterItemDropdown() {
     }
 
     const matches = allInventoryItems.filter(i =>
-        i.itemName.toLowerCase().includes(query) && !pickedItems[i.itemID]
+        i.itemName.toLowerCase().includes(query) &&
+        !pickedItems[i.itemID] &&
+        String(i.departmentID) === String(deptID)
     );
 
     if (matches.length === 0) {
@@ -162,32 +184,43 @@ function filterItemDropdown() {
     }
 
     dropdown.innerHTML = matches.map(i => {
-    const available = Number(i.itemquantity);
-    const isOutOfStock = available <= 0;
-    const safeName = i.itemName.replace(/'/g, "\\'");
+        const available = Number(i.itemquantity);
+        const isOutOfStock = available <= 0;
+        const safeName = i.itemName.replace(/'/g, "\\'");
 
-    return `
-        <div
-            ${isOutOfStock ? "" : `onclick="pickItem(${i.itemID}, '${safeName}', ${available})"`}
-            style="
-                padding:8px 10px;
-                cursor:${isOutOfStock ? "not-allowed" : "pointer"};
-                color:${isOutOfStock ? "rgba(255,255,255,0.35)" : "white"};
-                border-bottom:1px solid rgba(255,255,255,0.07);
-            "
-            ${isOutOfStock ? "" : "onmouseover=\"this.style.background='rgba(56,189,248,0.1)'\""}
-            ${isOutOfStock ? "" : "onmouseout=\"this.style.background='transparent'\""}
-        >
-            ${i.itemName}
-            <span style="opacity:0.5; font-size:0.8rem;">
-                ${isOutOfStock ? "(Out of stock)" : `(${available} available)`}
-            </span>
-        </div>
-    `;
-}).join('');
+        return `
+            <div
+                ${isOutOfStock ? "" : `onclick="pickItem(${i.itemID}, '${safeName}', ${available})"`}
+                style="
+                    padding:8px 10px;
+                    cursor:${isOutOfStock ? "not-allowed" : "pointer"};
+                    color:${isOutOfStock ? "rgba(255,255,255,0.35)" : "white"};
+                    border-bottom:1px solid rgba(255,255,255,0.07);
+                "
+                ${isOutOfStock ? "" : "onmouseover=\"this.style.background='rgba(56,189,248,0.1)'\""}
+                ${isOutOfStock ? "" : "onmouseout=\"this.style.background='transparent'\""}
+            >
+                ${i.itemName}
+                <span style="opacity:0.5; font-size:0.8rem;">
+                    ${isOutOfStock ? "(Out of stock)" : `(${available} available)`}
+                </span>
+            </div>
+        `;
+    }).join('');
 
     dropdown.style.display = "block";
 }
+
+document.addEventListener("DOMContentLoaded", function () {
+    const deptSelect = document.getElementById("departmentID");
+    if (!deptSelect) return;
+
+    deptSelect.addEventListener("change", function () {
+        resetItemPicker();
+        const search = document.getElementById("itemSearch");
+        if (search) search.value = "";
+    });
+});
 
 function pickItem(id, name, available) {
     available = Number(available);
@@ -283,8 +316,10 @@ function sortInventoryTable(col) {
     const asc = inventorySortState[col];
 
     rows.sort((a, b) => {
-        let A = a.cells[col].innerText.trim();
-        let B = b.cells[col].innerText.trim();
+        
+        let A = a.cells[col].dataset.sort ?? a.cells[col].innerText.trim();
+        let B = b.cells[col].dataset.sort ?? b.cells[col].innerText.trim();
+
         const numA = parseFloat(A);
         const numB = parseFloat(B);
         if (!isNaN(numA) && !isNaN(numB)) return asc ? numA - numB : numB - numA;
@@ -300,12 +335,25 @@ function sortInventoryTable(col) {
 function searchTable() {
     const input = document.getElementById("searchInput");
     if (!input) return;
+
     const filter = input.value.toLowerCase();
+    const deptFilter = document.getElementById("inventoryDeptFilter");
+    const activeDept = deptFilter ? deptFilter.value.toLowerCase() : "";
+
     const table = document.getElementById("inventoryTable");
     const rows = table.getElementsByTagName("tr");
+
     for (let i = 1; i < rows.length; i++) {
         const row = rows[i];
-        row.style.display = row.innerText.toLowerCase().includes(filter) ? "" : "none";
+
+        // department cell is column 6
+        const deptCell = row.cells[6];
+        const deptName = deptCell ? deptCell.innerText.trim().toLowerCase() : "";
+
+        const matchesDept = !activeDept || deptName === activeDept;
+        const matchesSearch = row.innerText.toLowerCase().includes(filter);
+
+        row.style.display = (matchesDept && matchesSearch) ? "" : "none";
     }
 }
 
@@ -317,7 +365,7 @@ function openAddItemModal() {
     document.getElementById("modal").style.display = "flex";
 }
 
-function openUpdateItemModal(id, name, description, quantity, photo) {
+function openUpdateItemModal(id, name, description, quantity, photo, deptID) {
     document.getElementById("modalTitle").innerText = "Update Item";
     document.getElementById("modalSubmitBtn").innerText = "Update";
     document.getElementById("itemForm").action = "/inventory/" + id;
@@ -326,6 +374,13 @@ function openUpdateItemModal(id, name, description, quantity, photo) {
     document.getElementById("itemDescription").value = description;
     document.getElementById("itemquantity").value = quantity;
     document.getElementById("itemphoto").value = photo;
+
+    //set dropdown
+    const deptSelect = document.getElementById("departmentID");
+    if (deptSelect && deptID) {
+        deptSelect.value = deptID;
+    }
+
     document.getElementById("modal").style.display = "flex";
 }
 
@@ -347,6 +402,24 @@ function updateDateInputColours() {
             input.classList.remove("has-value");
         }
     });
+}
+
+/* ── DASHBOARD PAGE ────────────────────────────────────────── */
+
+function toggleSection(sectionId) {
+    const section = document.getElementById(sectionId);
+    const header = section.previousElementSibling;
+    const toggle = header.querySelector('.section-toggle');
+
+    if (section.style.display === 'none') {
+        section.style.display = 'block';
+        header.classList.remove('collapsed');
+        toggle.style.transform = 'rotate(0deg)';
+    } else {
+        section.style.display = 'none';
+        header.classList.add('collapsed');
+        toggle.style.transform = 'rotate(-90deg)';
+    }
 }
 
 document.addEventListener("input", function (e) {
@@ -418,8 +491,10 @@ function sortSimpleTable(tableId, col) {
     const asc = table.sortState[col];
 
     rows.sort((a, b) => {
-        let A = a.cells[col].innerText.trim().toLowerCase();
-        let B = b.cells[col].innerText.trim().toLowerCase();
+        
+        let A = a.cells[col].dataset.sort ?? a.cells[col].innerText.trim();
+        let B = b.cells[col].dataset.sort ?? b.cells[col].innerText.trim();
+
 
         const numA = parseFloat(A);
         const numB = parseFloat(B);
@@ -445,7 +520,6 @@ function sortSimpleTable(tableId, col) {
     }
 }
 
-
 // wrappers (match your onclick calls)
 
 function sortUsersTable(col) {
@@ -455,3 +529,296 @@ function sortUsersTable(col) {
 function sortDepartmentsTable(col) {
     sortSimpleTable("departmentsTable", col);
 }
+
+function bindFileInput() {
+    const fileInput = document.getElementById("itemphoto_file");
+    const urlInput = document.getElementById("itemphoto");
+    const fileNameDisplay = document.getElementById("fileName");
+
+    if (!fileInput || !urlInput) return;
+
+    fileInput.addEventListener("change", function () {
+        const file = this.files[0];
+
+        if (!file) {
+            urlInput.value = "";
+            if (fileNameDisplay) fileNameDisplay.textContent = "";
+            return;
+        }
+
+        // create preview url
+        const tempUrl = URL.createObjectURL(file);
+
+        // update url field
+        urlInput.value = tempUrl;
+
+        // add filename display here
+        if (fileNameDisplay) {
+            fileNameDisplay.textContent = file.name;
+        }
+    });
+}
+
+function openDeleteModal(action) {
+    document.getElementById("deleteConfirmForm").action = action;
+    document.getElementById("deleteConfirmModal").style.display = "flex";
+}
+
+function closeDeleteModal() {
+    document.getElementById("deleteConfirmModal").style.display = "none";
+}
+
+function openInventoryDeleteModal(url) {
+    document.getElementById("inventoryDeleteLink").href = url;
+    document.getElementById("inventoryDeleteModal").style.display = "flex";
+}
+
+function closeInventoryDeleteModal() {
+    document.getElementById("inventoryDeleteModal").style.display = "none";
+}
+
+function openRequestDeleteModal(url) {
+    document.getElementById("requestDeleteLink").href = url;
+    document.getElementById("requestDeleteModal").style.display = "flex";
+}
+
+function closeRequestDeleteModal() {
+    document.getElementById("requestDeleteModal").style.display = "none";
+}
+
+function openDeleteUserModal(url) {
+    document.getElementById("deleteUserConfirmBtn").onclick = function() {
+        window.location.href = url;
+    };
+    document.getElementById("deleteUserModal").style.display = "flex";
+}
+
+function closeDeleteUserModal() {
+    document.getElementById("deleteUserModal").style.display = "none";
+}
+
+function openDeleteDepartmentModal(url) {
+    document.getElementById("deleteDepartmentConfirmBtn").onclick = function() {
+        window.location.href = url;
+    };
+    document.getElementById("deleteDepartmentModal").style.display = "flex";
+}
+
+function closeDeleteDepartmentModal() {
+    document.getElementById("deleteDepartmentModal").style.display = "none";
+}
+
+function openRemoveMemberModal(url) {
+    document.getElementById("removeMemberConfirmBtn").onclick = function() {
+        window.location.href = url;
+    };
+    document.getElementById("removeMemberModal").style.display = "flex";
+}
+
+function closeRemoveMemberModal() {
+    document.getElementById("removeMemberModal").style.display = "none";
+}
+
+function filterByDepartment() {
+    const filter = document.getElementById("departmentFilter").value.toLowerCase();
+    const table = document.getElementById("requestsTable");
+    const rows = table.tBodies[0].rows;
+
+    for (let i = 0; i < rows.length; i++) {
+        // department cell is column 9 (index 9)
+        const deptCell = rows[i].cells[9];
+        if (!deptCell) continue;
+
+        const deptName = deptCell.innerText.trim().toLowerCase();
+
+        if (!filter || deptName === filter) {
+            rows[i].style.display = "";
+        } else {
+            rows[i].style.display = "none";
+        }
+    }
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    const select = document.getElementById("departmentFilter");
+    if (!select) return;
+
+    const seen = new Set();
+    const options = Array.from(select.options);
+
+    options.forEach(opt => {
+        if (opt.value === "") return; // keep "All Departments"
+        if (seen.has(opt.value)) {
+            opt.remove();
+        } else {
+            seen.add(opt.value);
+        }
+    });
+});
+
+function filterInventoryByDepartment() {
+    const filter = document.getElementById("inventoryDeptFilter").value.toLowerCase();
+    const table = document.getElementById("inventoryTable");
+    const rows = table.tBodies[0].rows;
+
+    for (let i = 0; i < rows.length; i++) {
+        // department is column 6
+        const deptCell = rows[i].cells[6];
+        if (!deptCell) continue;
+
+        const deptName = deptCell.innerText.trim().toLowerCase();
+
+        if (!filter || deptName === filter) {
+            rows[i].style.display = "";
+        } else {
+            rows[i].style.display = "none";
+        }
+    }
+}
+
+// deduplicate inventory dept filter options
+document.addEventListener("DOMContentLoaded", function () {
+    const select = document.getElementById("inventoryDeptFilter");
+    if (!select) return;
+
+    const seen = new Set();
+    Array.from(select.options).forEach(opt => {
+        if (opt.value === "") return;
+        if (seen.has(opt.value)) {
+            opt.remove();
+        } else {
+            seen.add(opt.value);
+        }
+    });
+});
+
+function exportInventoryCSV() {
+    const table = document.getElementById("inventoryTable");
+    if (!table) return;
+
+    const headers = ["Item", "Category", "Total Quantity", "Quantity Available", "Status", "Department"];
+    const rows = [];
+
+    // only visible rows
+    const tableRows = table.tBodies[0].rows;
+    for (let i = 0; i < tableRows.length; i++) {
+        const row = tableRows[i];
+        if (row.style.display === "none") continue;
+
+        const cells = row.cells;
+        rows.push([
+            cells[0]?.innerText.trim() || "",
+            cells[1]?.innerText.trim() || "",
+            cells[2]?.innerText.trim() || "",
+            cells[3]?.innerText.trim() || "",
+            cells[4]?.innerText.trim() || "",
+            cells[6]?.innerText.trim() || ""
+        ]);
+    }
+
+    // build CSV
+    const csvContent = [headers, ...rows]
+        .map(row => row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(","))
+        .join("\n");
+
+    // trigger download
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "inventory_export.csv";
+    link.click();
+    URL.revokeObjectURL(url);
+}
+
+function toggleUserPanel() {
+    const panel = document.getElementById("userPopout");
+    const backdrop = document.getElementById("userPanelBackdrop");
+
+    if (panel.classList.contains("open")) {
+        panel.classList.remove("open");
+        backdrop.style.display = "none";
+    } else {
+        panel.classList.add("open");
+        backdrop.style.display = "block";
+    }
+}
+
+function closeUserPanel() {
+    document.getElementById("userPopout").classList.remove("open");
+    document.getElementById("userPanelBackdrop").style.display = "none";
+}
+
+function openChangePasswordModal() {
+    closeUserPanel();
+    document.getElementById("changePasswordModal").style.display = "flex";
+}
+
+function closeChangePasswordModal() {
+    document.getElementById("changePasswordModal").style.display = "none";
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("changePasswordForm");
+    if (!form) return;
+
+    form.addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        const current = form.querySelector("[name='current_password']").value.trim();
+        const newPw = form.querySelector("[name='new_password']").value;
+        const confirm = form.querySelector("[name='confirm_password']").value;
+        const errorEl = document.getElementById("passwordError");
+
+        errorEl.textContent = "";
+
+        // client-side checks
+        if (!current) {
+            errorEl.textContent = "Please enter your current password.";
+            return;
+        }
+
+        if (!newPw) {
+            errorEl.textContent = "Please enter a new password.";
+            return;
+        }
+
+        if (newPw.length < 6) {
+            errorEl.textContent = "New password must be at least 6 characters.";
+            return;
+        }
+
+        if (newPw !== confirm) {
+            errorEl.textContent = "New passwords do not match.";
+            return;
+        }
+
+        // send to backend
+        const formData = new FormData(form);
+
+        fetch('/account/password', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                // show error INSIDE modal
+                errorEl.textContent = data.error;
+            } else {
+                // success — close modal
+                document.getElementById("changePasswordModal").style.display = "none";
+                form.reset();
+                errorEl.textContent = "";
+                alert("Password updated successfully.");
+            }
+        })
+        .catch(() => {
+            errorEl.textContent = "Something went wrong. Please try again.";
+        });
+    });
+});
+
+// run once on page load
+document.addEventListener("DOMContentLoaded", bindFileInput);
+
