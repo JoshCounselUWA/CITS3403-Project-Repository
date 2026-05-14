@@ -404,6 +404,11 @@ This page will have different content depending on who logs in, eg: different "u
                                             {{ request.status.value }}
                                         </span>
                                     </div>
+                                    <div class="card-meta" style="margin-top:4px;">
+                                        Requester: {{ request.requester.userName if request.requester else 'Unknown' }}
+                                        &nbsp;·&nbsp;
+                                        Dept: {{ request.department.departmentName if request.department else '-' }}
+                                    </div>
                                 </div>
 
                                 <!-- RIGHT SIDE BUTTONS -->
@@ -469,6 +474,11 @@ This page will have different content depending on who logs in, eg: different "u
                                     <div class="card-meta">
                                         Due: <span class="due-date">{{ request.returnDate.strftime('%Y-%m-%d') if request.returnDate else 'N/A' }}</span>
                                     </div>
+                                    <div class="card-meta" style="margin-top:4px;">
+                                        Requester: {{ request.requester.userName if request.requester else 'Unknown' }}
+                                        &nbsp;·&nbsp;
+                                        Dept: {{ request.department.departmentName if request.department else '-' }}
+                                    </div>
                                 </div>
 
                                 <div class="ml-auto mr-4">
@@ -530,6 +540,11 @@ This page will have different content depending on who logs in, eg: different "u
                                 </div>
                                 <div class="card-meta" style="margin-top:4px;">
                                     Was due: <span class="due-date">{{ request.returnDate.strftime('%Y-%m-%d') if request.returnDate else 'N/A' }}</span>
+                                </div>
+                                <div class="card-meta" style="margin-top:4px;">
+                                    Requester: {{ request.requester.userName if request.requester else 'Unknown' }}
+                                    &nbsp;·&nbsp;
+                                    Dept: {{ request.department.departmentName if request.department else '-' }}
                                 </div>
                             </div>
 
