@@ -570,6 +570,17 @@ function closeDeleteDepartmentModal() {
     document.getElementById("deleteDepartmentModal").style.display = "none";
 }
 
+function openRemoveMemberModal(url) {
+    document.getElementById("removeMemberConfirmBtn").onclick = function() {
+        window.location.href = url;
+    };
+    document.getElementById("removeMemberModal").style.display = "flex";
+}
+
+function closeRemoveMemberModal() {
+    document.getElementById("removeMemberModal").style.display = "none";
+}
+
 // run once on page load
 document.addEventListener("DOMContentLoaded", bindFileInput);
 

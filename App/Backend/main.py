@@ -900,5 +900,40 @@ def delete_user(user_id):
     flash('Account deleted', 'success')
     return redirect(url_for('appsettings'))
 
+@app.route('/departments/<int:dept_id>/remove/<int:membership_id>')
+@dept_admin_required
+def remove_member(dept_id, membership_id):
+    m = session.query(Membership).get(membership_id)
+
+    if not m or m.departmentID != dept_id:
+        flash('Member not found', 'error')
+        return redirect(url_for('department_detail', dept_id=dept_id))
+
+    session.delete(m)
+    session.commit()
+
+    flash('Member removed', 'success')
+    return redirect(url_for('department_detail', dept_id=dept_id))
+
+@app.route('/departments/<int:dept_id>/member/<int:membership_id>/role', methods=['POST'])
+@dept_admin_required
+def update_member_role(dept_id, membership_id):
+    m = session.query(Membership).get(membership_id)
+
+    if not m or m.departmentID != dept_id:
+        flash('Member not found', 'error')
+        return redirect(url_for('department_detail', dept_id=dept_id))
+
+    role_str = request.form.get('role', 'member')
+
+    try:
+        m.role = MembershipRole(role_str)
+        session.commit()
+        flash('Role updated', 'success')
+    except ValueError:
+        flash('Invalid role', 'error')
+
+    return redirect(url_for('department_detail', dept_id=dept_id))
+
 if __name__ == "__main__":
     app.run(debug=True)

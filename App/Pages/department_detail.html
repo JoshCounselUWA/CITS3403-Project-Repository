@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DICE - {{ dept.departmentName }}</title>
     <link rel="stylesheet" href="../Static/output.css">
+    <script src="../Static/script.js" defer></script>
     <link rel="icon" type="image/x-icon" href="../Static/DICE_favicon.png">
     <style>
         body { background: #020617; color: white; font-family: sans-serif; margin: 0; }
@@ -110,14 +111,33 @@
             {% if members %}
                 <table>
                     <thead>
-                        <tr><th>Username</th><th>Name</th><th>Role</th></tr>
+                        <tr><th>Username</th><th>Name</th><th>Role</th><th></th></tr>
                     </thead>
                     <tbody>
                         {% for m in members %}
                         <tr>
                             <td>{{ m.user.userName }}</td>
                             <td>{{ m.user.fName }} {{ m.user.lName }}</td>
-                            <td><span class="role-badge role-{{ m.role.value }}">{{ m.role.value }}</span></td>
+                            <td>
+                                <form method="POST" action="/departments/{{ dept.departmentID }}/member/{{ m.id }}/role">
+                                    <select name="role" onchange="this.form.submit()">
+                                        <option value="member" {% if m.role.value == 'member' %}selected{% endif %}>
+                                            Member
+                                        </option>
+                                        <option value="admin" {% if m.role.value == 'admin' %}selected{% endif %}>
+                                            Department Head
+                                        </option>
+                                    </select>
+                                </form>
+                            </td>
+                            <td>
+                                <button type="button"
+                                        onclick="openRemoveMemberModal('/departments/{{ dept.departmentID }}/remove/{{ m.id }}')"
+                                        style="padding: 4px 12px; background:#991b1b; color:white;
+                                            border:none; border-radius:6px; cursor:pointer; font-size:0.85rem;">
+                                    Remove
+                                </button>
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -167,6 +187,35 @@
             </table>
         </div>
         {% endif %}
+    </div>
+
+    <!-- Remove Member Confirm Modal -->
+    <div id="removeMemberModal"
+        style="display:none; position:fixed; inset:0;
+                background:rgba(2,6,23,0.75); backdrop-filter:blur(4px);
+                align-items:center; justify-content:center; z-index:100;">
+        <div style="background:#020617; padding:20px; width:380px; border-radius:12px;
+                    color:white; border:1px solid rgba(255,255,255,0.08);
+                    box-shadow:0 10px 30px rgba(0,0,0,0.6);">
+            <h2 style="margin-bottom:10px;">Remove Member</h2>
+            <p style="color:#94a3b8; font-size:0.9rem; margin-bottom:20px;">
+                Are you sure you want to remove this member from the department?
+            </p>
+            <div style="display:flex; justify-content:space-between;">
+                <button type="button"
+                        onclick="closeRemoveMemberModal()"
+                        style="padding:8px 16px; background:#0c4a6e; color:white;
+                            border:none; border-radius:8px; cursor:pointer;">
+                    Cancel
+                </button>
+                <button type="button"
+                        id="removeMemberConfirmBtn"
+                        style="padding:8px 16px; background:#991b1b; color:white;
+                            border:none; border-radius:8px; cursor:pointer;">
+                    Remove
+                </button>
+            </div>
+        </div>
     </div>
 </body>
 </html>
