@@ -190,7 +190,7 @@ def inventory():
     else:
         user_departments = [
             m.department for m in current_user.memberships
-            if m.status.value == "accepted"
+            if m.status.value == "accepted" and m.role.value == "admin"
         ]
 
     return render_template("inventory.html", items=items, user_departments=user_departments)
@@ -732,10 +732,25 @@ def add_department():
 def delete_department(dept_id):
     dept = session.query(Department).get(dept_id)
 
-    if dept:
-        session.delete(dept)
-        session.commit()
+    if not dept:
+        flash('Department not found', 'error')
+        return redirect(url_for('appsettings'))
 
+    # delete all requests for this department
+    requests_to_delete = session.query(Request).filter_by(departmentID=dept_id).all()
+    for req in requests_to_delete:
+        session.delete(req)
+
+    # delete all inventory for this department
+    items_to_delete = session.query(Inventory).filter_by(departmentID=dept_id).all()
+    for item in items_to_delete:
+        session.delete(item)
+
+    # delete the department itself
+    session.delete(dept)
+    session.commit()
+
+    flash('Department and all associated data deleted', 'success')
     return redirect(url_for('appsettings'))
 
 
