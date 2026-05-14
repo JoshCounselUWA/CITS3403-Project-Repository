@@ -482,7 +482,6 @@ function sortSimpleTable(tableId, col) {
     }
 }
 
-
 // wrappers (match your onclick calls)
 
 function sortUsersTable(col) {
@@ -558,6 +557,17 @@ function openDeleteUserModal(url) {
 
 function closeDeleteUserModal() {
     document.getElementById("deleteUserModal").style.display = "none";
+}
+
+function openDeleteDepartmentModal(url) {
+    document.getElementById("deleteDepartmentConfirmBtn").onclick = function() {
+        window.location.href = url;
+    };
+    document.getElementById("deleteDepartmentModal").style.display = "flex";
+}
+
+function closeDeleteDepartmentModal() {
+    document.getElementById("deleteDepartmentModal").style.display = "none";
 }
 
 // run once on page load

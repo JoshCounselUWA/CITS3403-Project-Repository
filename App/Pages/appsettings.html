@@ -262,11 +262,11 @@
                     Update
                 </button>
 
-                <a href="/appsettings/departments/delete/{{ d.departmentID }}">
-                    <button class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
-                        Delete
-                    </button>
-                </a>
+                <button type="button"
+                        onclick="openDeleteDepartmentModal('/appsettings/departments/delete/{{ d.departmentID }}')"
+                        class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
+                    Delete
+                </button>
             </td>
         </tr>
         {% endfor %}
@@ -380,6 +380,30 @@
             </button>
             <button type="button"
                     id="deleteUserConfirmBtn"
+                    style="background:#991b1b; padding-left:16px; padding-right:16px;"
+                    class="rounded-lg py-2 text-white">
+                Delete
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Department Confirm Modal -->
+<div class="modal-overlay" id="deleteDepartmentModal">
+    <div class="modal">
+        <h2>Delete Department</h2>
+        <p style="color:#94a3b8; font-size:0.9rem; margin-bottom:20px;">
+            Are you sure? This will also delete all inventory and requests for this department.
+        </p>
+        <div class="modal-actions">
+            <button type="button"
+                    onclick="closeDeleteDepartmentModal()"
+                    class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white"
+                    style="padding-left:16px; padding-right:16px;">
+                Cancel
+            </button>
+            <button type="button"
+                    id="deleteDepartmentConfirmBtn"
                     style="background:#991b1b; padding-left:16px; padding-right:16px;"
                     class="rounded-lg py-2 text-white">
                 Delete
