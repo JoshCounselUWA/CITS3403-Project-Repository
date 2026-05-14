@@ -36,10 +36,6 @@
 
     /* SEARCH BAR */
     .search-bar {
-        position: fixed;
-        top: 90px;
-        left: 300px;
-        z-index: 50;
         width: 280px;
     }
 
@@ -196,6 +192,62 @@
         background: rgba(56,189,248,0.05);
     }
 
+    .modal select {
+        width: 100%;
+        padding: 6px;
+        margin-bottom: 10px;
+        background: rgba(255,255,255,0.02);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 6px;
+        appearance: none;
+        -webkit-appearance: none;
+        cursor: pointer;
+    }
+
+    .modal select:focus {
+        outline: none;
+        border-color: #38bdf8;
+        background: rgba(56,189,248,0.05);
+    }
+
+    .modal select option {
+        background: #020617;
+        color: white;
+    }
+
+    .filter-bar {
+        position: fixed;
+        top: 90px;
+        left: 300px;
+        z-index: 50;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .dept-filter {
+        padding: 8px 10px;
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 8px;
+        color: white;
+        min-width: 200px;
+        cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+    }
+
+    .dept-filter:focus {
+        outline: none;
+        border-color: #38bdf8;
+        background: rgba(56,189,248,0.05);
+    }
+
+    .dept-filter option {
+        background: #020617;
+        color: white;
+    }
 
 </style>
 
@@ -241,9 +293,47 @@
 </button>
 {% endif %}
 
-<!-- SEARCH BAR -->
-<div class="search-bar">
-    <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="Search items...">
+<!-- FILTER + SEARCH BAR -->
+<div style="position:fixed; top:90px; left:300px; z-index:50; display:flex; gap:10px;">
+
+    <div style="position:relative; display:flex; align-items:center;">
+        <span style="position:absolute; left:10px; color:rgba(255,255,255,0.5); pointer-events:none; font-size:0.9rem;">
+            ⛉
+        </span>
+        <select id="inventoryDeptFilter"
+                onchange="filterInventoryByDepartment()"
+                class="dept-filter"
+                style="padding-left:28px;">
+            <option value="">All Departments</option>
+            {% for item in items %}
+                {% if item.department %}
+                    <option value="{{ item.department.departmentName }}">
+                        {{ item.department.departmentName }}
+                    </option>
+                {% endif %}
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="search-bar">
+        <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="Search items...">
+    </div>
+
+    <button onclick="exportInventoryCSV()"
+            style="padding:8px 16px;
+                   background:rgba(255,255,255,0.02);
+                   border:1px solid rgba(255,255,255,0.15);
+                   border-radius:8px;
+                   color:white;
+                   cursor:pointer;
+                   white-space:nowrap;"
+            onmouseover="this.style.borderColor='#38bdf8'"
+            onmouseout="this.style.borderColor='rgba(255,255,255,0.15)'">
+        ↓ Export
+    </button>
+
+</div>
+
 </div>
 
 <!-- Table -->
@@ -257,7 +347,15 @@
                 <th onclick="sortInventoryTable(3)">Quantity Available <span class="arrow">↕</span></th>
                 <th onclick="sortInventoryTable(4)">Status <span class="arrow">↕</span></th>
                 <th onclick="sortInventoryTable(5)">Photo <span class="arrow">↕</span></th>
+                <th onclick="sortInventoryTable(6)">Department <span class="arrow">↕</span></th>
+                {% if current_user.accountType == "business_admin"
+                    or current_user.memberships | selectattr("role.value", "equalto", "admin")
+                        | selectattr("status.value", "equalto", "accepted")
+                        | list | length > 0 %}
                 <th class="actions">Actions</th>
+                {% else %}
+                <th class="actions"></th>
+                {% endif %}
             </tr>
         </thead>
 
@@ -286,6 +384,12 @@
                 {% endif %}
             </td>
 
+            
+            <td data-sort="{{ item.departmentID or 0 }}">
+                {{ item.department.departmentName if item.department else '-' }}
+            </td>
+
+
             <td class="actions">
                 {% if current_user.accountType == "business_admin"
                     or current_user.is_admin_of(item.departmentID) %}
@@ -295,16 +399,17 @@
                         '{{ item.itemName|escape }}',
                         '{{ item.itemDescription|escape }}',
                         '{{ item.itemquantity }}',
-                        '{{ item.itemphoto|escape }}')"
+                        '{{ item.itemphoto|escape }}',
+                        '{{ item.departmentID }}')"
                         class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
                         Update
                     </button>
 
-                    <a href="/inventory/delete/{{ item.itemID }}">
-                        <button class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
-                            Delete
-                        </button>
-                    </a>
+                    <button type="button"
+                            onclick="openInventoryDeleteModal('/inventory/delete/{{ item.itemID }}')"
+                            class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
+                        Delete
+                    </button>
 
                 {% endif %}
             </td>
@@ -337,13 +442,46 @@
 
         <span id="fileName" style="color:rgba(255,255,255,0.6); font-size:0.85rem;"></span>
 
-        <input name="departmentID" id="departmentID" type="number" placeholder="Department ID" required>
+        <select name="departmentID" id="departmentID" required
+                style="width:100%; padding:6px; margin-bottom:10px;
+                    background:rgba(255,255,255,0.02); color:white;
+                    border:1px solid rgba(255,255,255,0.15); border-radius:6px;">
+            <option value="" disabled selected>Select Department</option>
+            {% for dept in user_departments %}
+            <option value="{{ dept.departmentID }}">{{ dept.departmentName }}</option>
+            {% endfor %}
+        </select>
 
         <div class="modal-actions">
             <button type="button" onclick="closeItemModal()" class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">Cancel</button>
             <button type="submit" id="modalSubmitBtn" class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">Add Item</button>
         </div>
     </form>
+</div>
+
+<!-- Inventory Delete Confirm Modal -->
+<div class="modal-overlay" id="inventoryDeleteModal">
+    <div class="modal">
+        <h2>Delete Item</h2>
+        <p style="color:#94a3b8; font-size:0.9rem; margin-bottom:20px;">
+            Are you sure you want to delete this item? This cannot be undone.
+        </p>
+        <div class="modal-actions">
+            <button type="button"
+                    onclick="closeInventoryDeleteModal()"
+                    class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white"
+                    style="padding-left:16px; padding-right:16px;">
+                Cancel
+            </button>
+            <a id="inventoryDeleteLink" href="#">
+                <button type="button"
+                        style="background:#991b1b; padding-left:16px; padding-right:16px;"
+                        class="rounded-lg py-2 text-white">
+                    Delete
+                </button>
+            </a>
+        </div>
+    </div>
 </div>
 
 </body>

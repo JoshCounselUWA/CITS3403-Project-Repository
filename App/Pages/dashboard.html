@@ -191,6 +191,82 @@ This page will have different content depending on who logs in, eg: different "u
             justify-content: space-between;
             width: 100%;
         }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(2, 6, 23, 0.75);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .modal {
+            background: #020617;
+            padding: 20px;
+            width: 380px;
+            border-radius: 12px;
+            color: white;
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+        }
+
+        .modal h2 {
+            margin-bottom: 10px;
+        }
+
+        .modal p {
+            color: #94a3b8;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .status-overdue {
+            color: #f97316;
+            background: rgba(249, 115, 22, 0.2);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .overdue-card {
+            background: rgba(249, 115, 22, 0.05);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(249, 115, 22, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        .overdue-card:hover {
+            background: rgba(249, 115, 22, 0.1);
+            border-color: rgba(249, 115, 22, 0.5);
+        }
+
+        .overdue-alert {
+            background: rgba(249, 115, 22, 0.15);
+            border: 1px solid rgba(249, 115, 22, 0.4);
+            border-radius: 6px;
+            padding: 8px 12px;
+            color: #f97316;
+            font-size: 0.85rem;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
     </style>
 
 </head>
@@ -274,7 +350,8 @@ This page will have different content depending on who logs in, eg: different "u
                                             </button>
                                         </form>
                                         <form method="POST" action="/requests/delete_declined/{{ request.requestID }}">
-                                            <button onclick="return confirm('Delete this request?')"
+                                            <button type="button"
+                                                    onclick="openDeleteModal('/requests/delete_declined/{{ request.requestID }}')"
                                                     class="action-btn rounded-lg bg-sky-900 hover:bg-blue-800 px-4 py-2 text-white">
                                                 Delete
                                             </button>
@@ -326,6 +403,57 @@ This page will have different content depending on who logs in, eg: different "u
             </div>
         </div>
 
+        <!-- Overdue Loans -->
+        {% set ns3 = namespace(found_overdue=false) %}
+        {% for request in requests %}
+            {% if current_user.accountType == "business_admin"
+                or request.requesterID == current_user.userID
+                or current_user.is_admin_of(request.departmentID) %}
+                {% if request.status.value.lower() == 'overdue' %}
+                    {% set ns3.found_overdue = true %}
+                {% endif %}
+            {% endif %}
+        {% endfor %}
+
+        {% if ns3.found_overdue %}
+        <div class="dashboard-section">
+            <div class="section-header" onclick="toggleSection('overdue-section')"
+                style="background:#7c2d12;">
+                <h3>⚠ Overdue Loans <span class="section-toggle">▼</span></h3>
+            </div>
+            <div class="section-content" id="overdue-section">
+
+                <div class="overdue-alert">
+                    ⚠ These loans have passed their return date and require immediate attention.
+                </div>
+
+                {% for request in requests %}
+                    {% if current_user.accountType == "business_admin"
+                        or request.requesterID == current_user.userID
+                        or current_user.is_admin_of(request.departmentID) %}
+                        {% if request.status.value.lower() == 'overdue' %}
+
+                        <div class="overdue-card">
+                            <div class="flex-1">
+                                <div class="card-title">{{ request.requestTitle }}</div>
+                                <div class="card-description">{{ request.requestJustification or 'No justification provided' }}</div>
+                                <div class="card-meta">
+                                    Status: <span class="status-overdue">Overdue</span>
+                                </div>
+                                <div class="card-meta" style="margin-top:4px;">
+                                    Was due: <span class="due-date">{{ request.returnDate.strftime('%Y-%m-%d') if request.returnDate else 'N/A' }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+
+            </div>
+        </div>
+        {% endif %}
+
         <!-- Department Invitations -->
         <div class="dashboard-section">
             <div class="section-header" onclick="toggleSection('invitations-section')">
@@ -361,6 +489,29 @@ This page will have different content depending on who logs in, eg: different "u
             </div>
         </div>
 
+    </div>
+
+    <!-- Delete Confirm Modal -->
+    <div class="modal-overlay" id="deleteConfirmModal">
+        <div class="modal">
+            <h2>Delete Request</h2>
+            <p>Are you sure you want to delete this request? This cannot be undone.</p>
+            <div class="modal-actions">
+                <button type="button"
+                        onclick="closeDeleteModal()"
+                        class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white"
+                        style="padding-left:16px; padding-right:16px;">
+                    Cancel
+                </button>
+                <form id="deleteConfirmForm" method="POST">
+                    <button type="submit"
+                            class="rounded-lg py-2 text-white"
+                            style="background:#991b1b; padding-left:16px; padding-right:16px;">
+                        Delete
+                    </button>
+                </form>
+            </div>
+        </div>
     </div>
 
 </body>

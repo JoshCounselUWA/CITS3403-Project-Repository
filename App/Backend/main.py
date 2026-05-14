@@ -152,7 +152,17 @@ def register():
 @app.route('/inventory')
 @login_required
 def inventory():
-    items = session.query(Inventory).all()
+
+    if current_user.accountType == "business_admin":
+        items = session.query(Inventory).all()
+    else:
+        dept_ids = [
+            m.departmentID for m in current_user.memberships
+            if m.status.value == "accepted"
+        ]
+        items = session.query(Inventory).filter(
+            Inventory.departmentID.in_(dept_ids)
+        ).all()
 
     for item in items:
         outgoing_items = (
@@ -175,12 +185,31 @@ def inventory():
             0
         )
 
-    return render_template("inventory.html", items=items)
+    if current_user.accountType == "business_admin":
+        user_departments = session.query(Department).all()
+    else:
+        user_departments = [
+            m.department for m in current_user.memberships
+            if m.status.value == "accepted" and m.role.value == "admin"
+        ]
+
+    return render_template("inventory.html", items=items, user_departments=user_departments)
 
 @app.route('/inventory/json')
 @login_required
 def inventory_json():
-    items = session.query(Inventory).all()
+
+    if current_user.accountType == "business_admin":
+        items = session.query(Inventory).all()
+    else:
+        dept_ids = [
+            m.departmentID for m in current_user.memberships
+            if m.status.value == "accepted"
+        ]
+        items = session.query(Inventory).filter(
+            Inventory.departmentID.in_(dept_ids)
+        ).all()
+
     result = []
 
     for item in items:
@@ -210,9 +239,7 @@ def inventory_json():
             "itemphoto": item.itemphoto
         })
 
-    return jsonify({
-        "items": result
-    })
+    return jsonify({"items": result})
 
 #add inventory
 @app.route('/inventory/add', methods=['POST'])
@@ -259,6 +286,9 @@ def delete_inventory(item_id):
 
     if current_user.accountType != "business_admin" and not current_user.is_admin_of(item.departmentID):
         abort(403)
+
+    # remove item from all requests first
+    session.query(RequestItems).filter_by(itemID=item_id).delete()
 
     session.delete(item)
     session.commit()
@@ -310,8 +340,40 @@ def update_inventory(item_id):
 @app.route('/requests')
 @login_required
 def requests_page():
-    requests = session.query(Request).all()
-    return render_template("requests.html", requests=requests)
+
+    if current_user.accountType == "business_admin":
+        requests = session.query(Request).all()
+    else:
+        dept_ids = [
+            m.departmentID for m in current_user.memberships
+            if m.status.value == "accepted"
+        ]
+        requests = session.query(Request).filter(
+            Request.departmentID.in_(dept_ids)
+        ).all()
+
+    # auto-mark overdue
+    now = datetime.now()
+    changed = False
+    for req in requests:
+        if (req.returnDate
+                and req.returnDate < now
+                and req.status == Status.loaned):
+            req.status = Status.overdue
+            changed = True
+
+    if changed:
+        session.commit()
+
+    if current_user.accountType == "business_admin":
+        user_departments = session.query(Department).all()
+    else:
+        user_departments = [
+            m.department for m in current_user.memberships
+            if m.status.value == "accepted"
+        ]
+
+    return render_template("requests.html", requests=requests, user_departments=user_departments)
 
 #make request
 @app.route('/requests/add', methods=['POST'])
@@ -686,10 +748,25 @@ def add_department():
 def delete_department(dept_id):
     dept = session.query(Department).get(dept_id)
 
-    if dept:
-        session.delete(dept)
-        session.commit()
+    if not dept:
+        flash('Department not found', 'error')
+        return redirect(url_for('appsettings'))
 
+    # delete all requests for this department
+    requests_to_delete = session.query(Request).filter_by(departmentID=dept_id).all()
+    for req in requests_to_delete:
+        session.delete(req)
+
+    # delete all inventory for this department
+    items_to_delete = session.query(Inventory).filter_by(departmentID=dept_id).all()
+    for item in items_to_delete:
+        session.delete(item)
+
+    # delete the department itself
+    session.delete(dept)
+    session.commit()
+
+    flash('Department and all associated data deleted', 'success')
     return redirect(url_for('appsettings'))
 
 
@@ -746,7 +823,7 @@ def department_detail(dept_id):
     dept = session.query(Department).get(dept_id)
     if not dept:
         flash('Department not found', 'error')
-        return redirect(url_for('appsettings'))
+        return redirect(url_for('department_detail', dept_id=dept_id))
     
     members = (session.query(Membership).filter_by(departmentID=dept_id, status=MembershipStatus.accepted).all())
     pending = (session.query(Membership).filter_by(departmentID=dept_id, status=MembershipStatus.pending).all())
@@ -762,28 +839,28 @@ def invite_user(dept_id):
     
     if not username:
         flash('Username is required', 'error')
-        return redirect(url_for('appsettings'))
+        return redirect(url_for('department_detail', dept_id=dept_id))
     
     invitee = session.query(Account).filter_by(userName=username).first()
     if not invitee:
         flash(f'No user found with username -> {username}', 'error')
-        return redirect(url_for('appsettings'))
+        return redirect(url_for('department_detail', dept_id=dept_id))
     
     try:
         role = MembershipRole(role_str)
     except ValueError:
         flash('Invalid role', 'error')
-        return redirect(url_for('appsettings'))
+        return redirect(url_for('department_detail', dept_id=dept_id))
     
     existing = session.query(Membership).filter_by(userID=invitee.userID, departmentID=dept_id).first()
     
     if existing:
         if existing.status == MembershipStatus.accepted:
             flash(f'{username} is already a member of this department', 'error')
-            return redirect(url_for('appsettings'))
+            return redirect(url_for('department_detail', dept_id=dept_id))
         if existing.status == MembershipStatus.pending:
             flash(f'{username} has not accepted pending invite', 'error')
-            return redirect(url_for('appsettings'))
+            return redirect(url_for('department_detail', dept_id=dept_id))
         # status == declined → re-invite
         existing.status = MembershipStatus.pending
         existing.role = role
@@ -792,7 +869,7 @@ def invite_user(dept_id):
     
     session.commit()
     flash(f'Invitation sent to {username}', 'success')
-    return redirect(url_for('appsettings'))
+    return redirect(url_for('department_detail', dept_id=dept_id))
 
 @app.route('/invitations/<int:membership_id>/accept', methods=['POST'])
 @login_required
@@ -816,6 +893,60 @@ def decline_invitation(membership_id):
     session.commit()
     flash('Invitation declined', 'success')
     return redirect(url_for('dashboard'))
+
+@app.route('/appsettings/users/delete/<int:user_id>')
+@business_admin_required
+def delete_user(user_id):
+    user = session.query(Account).get(user_id)
+
+    if not user:
+        flash('User not found', 'error')
+        return redirect(url_for('appsettings'))
+
+    if user.userID == current_user.userID:
+        flash('You cannot delete your own account', 'error')
+        return redirect(url_for('appsettings'))
+
+    session.delete(user)
+    session.commit()
+
+    flash('Account deleted', 'success')
+    return redirect(url_for('appsettings'))
+
+@app.route('/departments/<int:dept_id>/remove/<int:membership_id>')
+@dept_admin_required
+def remove_member(dept_id, membership_id):
+    m = session.query(Membership).get(membership_id)
+
+    if not m or m.departmentID != dept_id:
+        flash('Member not found', 'error')
+        return redirect(url_for('department_detail', dept_id=dept_id))
+
+    session.delete(m)
+    session.commit()
+
+    flash('Member removed', 'success')
+    return redirect(url_for('department_detail', dept_id=dept_id))
+
+@app.route('/departments/<int:dept_id>/member/<int:membership_id>/role', methods=['POST'])
+@dept_admin_required
+def update_member_role(dept_id, membership_id):
+    m = session.query(Membership).get(membership_id)
+
+    if not m or m.departmentID != dept_id:
+        flash('Member not found', 'error')
+        return redirect(url_for('department_detail', dept_id=dept_id))
+
+    role_str = request.form.get('role', 'member')
+
+    try:
+        m.role = MembershipRole(role_str)
+        session.commit()
+        flash('Role updated', 'success')
+    except ValueError:
+        flash('Invalid role', 'error')
+
+    return redirect(url_for('department_detail', dept_id=dept_id))
 
 if __name__ == "__main__":
     app.run(debug=True)

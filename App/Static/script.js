@@ -12,8 +12,10 @@ function sortRequestsTable(col) {
     const asc = requestsSortState[col];
 
     rows.sort((a, b) => {
-        let A = a.cells[col].innerText.trim();
-        let B = b.cells[col].innerText.trim();
+        
+        let A = a.cells[col].dataset.sort ?? a.cells[col].innerText.trim();
+        let B = b.cells[col].dataset.sort ?? b.cells[col].innerText.trim();
+
         const numA = parseFloat(A);
         const numB = parseFloat(B);
         if (!isNaN(numA) && !isNaN(numB)) return asc ? numA - numB : numB - numA;
@@ -37,7 +39,7 @@ function openAddModal() {
     document.getElementById("modal").style.display = "flex";
 }
 
-function openUpdateModal(id, title, justification, eventDateStart, eventDateEnd, returnDate) {
+function openUpdateModal(id, title, justification, eventDateStart, eventDateEnd, returnDate, deptID) {
     document.getElementById("modalTitle").innerText = "Update Request";
     document.getElementById("modalSubmitBtn").innerText = "Update";
     document.getElementById("requestForm").action = "/requests/" + id;
@@ -53,6 +55,12 @@ function openUpdateModal(id, title, justification, eventDateStart, eventDateEnd,
     if (eventDateEndField) eventDateEndField.value = eventDateEnd || "";
     if (returnDateField) returnDateField.value = returnDate || "";
     updateDateInputColours();
+
+    
+    const deptSelect = document.getElementById("departmentID");
+    if (deptSelect && deptID) {
+        deptSelect.value = deptID;
+    }
 
     resetItemPicker();
 
@@ -283,8 +291,10 @@ function sortInventoryTable(col) {
     const asc = inventorySortState[col];
 
     rows.sort((a, b) => {
-        let A = a.cells[col].innerText.trim();
-        let B = b.cells[col].innerText.trim();
+        
+        let A = a.cells[col].dataset.sort ?? a.cells[col].innerText.trim();
+        let B = b.cells[col].dataset.sort ?? b.cells[col].innerText.trim();
+
         const numA = parseFloat(A);
         const numB = parseFloat(B);
         if (!isNaN(numA) && !isNaN(numB)) return asc ? numA - numB : numB - numA;
@@ -300,12 +310,25 @@ function sortInventoryTable(col) {
 function searchTable() {
     const input = document.getElementById("searchInput");
     if (!input) return;
+
     const filter = input.value.toLowerCase();
+    const deptFilter = document.getElementById("inventoryDeptFilter");
+    const activeDept = deptFilter ? deptFilter.value.toLowerCase() : "";
+
     const table = document.getElementById("inventoryTable");
     const rows = table.getElementsByTagName("tr");
+
     for (let i = 1; i < rows.length; i++) {
         const row = rows[i];
-        row.style.display = row.innerText.toLowerCase().includes(filter) ? "" : "none";
+
+        // department cell is column 6
+        const deptCell = row.cells[6];
+        const deptName = deptCell ? deptCell.innerText.trim().toLowerCase() : "";
+
+        const matchesDept = !activeDept || deptName === activeDept;
+        const matchesSearch = row.innerText.toLowerCase().includes(filter);
+
+        row.style.display = (matchesDept && matchesSearch) ? "" : "none";
     }
 }
 
@@ -317,7 +340,7 @@ function openAddItemModal() {
     document.getElementById("modal").style.display = "flex";
 }
 
-function openUpdateItemModal(id, name, description, quantity, photo) {
+function openUpdateItemModal(id, name, description, quantity, photo, deptID) {
     document.getElementById("modalTitle").innerText = "Update Item";
     document.getElementById("modalSubmitBtn").innerText = "Update";
     document.getElementById("itemForm").action = "/inventory/" + id;
@@ -326,6 +349,13 @@ function openUpdateItemModal(id, name, description, quantity, photo) {
     document.getElementById("itemDescription").value = description;
     document.getElementById("itemquantity").value = quantity;
     document.getElementById("itemphoto").value = photo;
+
+    //set dropdown
+    const deptSelect = document.getElementById("departmentID");
+    if (deptSelect && deptID) {
+        deptSelect.value = deptID;
+    }
+
     document.getElementById("modal").style.display = "flex";
 }
 
@@ -436,8 +466,10 @@ function sortSimpleTable(tableId, col) {
     const asc = table.sortState[col];
 
     rows.sort((a, b) => {
-        let A = a.cells[col].innerText.trim().toLowerCase();
-        let B = b.cells[col].innerText.trim().toLowerCase();
+        
+        let A = a.cells[col].dataset.sort ?? a.cells[col].innerText.trim();
+        let B = b.cells[col].dataset.sort ?? b.cells[col].innerText.trim();
+
 
         const numA = parseFloat(A);
         const numB = parseFloat(B);
@@ -462,7 +494,6 @@ function sortSimpleTable(tableId, col) {
         arrow.textContent = asc ? "▲" : "▼";
     }
 }
-
 
 // wrappers (match your onclick calls)
 
@@ -496,11 +527,183 @@ function bindFileInput() {
         // update url field
         urlInput.value = tempUrl;
 
-        // ✅ add filename display here
+        // add filename display here
         if (fileNameDisplay) {
             fileNameDisplay.textContent = file.name;
         }
     });
+}
+
+function openDeleteModal(action) {
+    document.getElementById("deleteConfirmForm").action = action;
+    document.getElementById("deleteConfirmModal").style.display = "flex";
+}
+
+function closeDeleteModal() {
+    document.getElementById("deleteConfirmModal").style.display = "none";
+}
+
+function openInventoryDeleteModal(url) {
+    document.getElementById("inventoryDeleteLink").href = url;
+    document.getElementById("inventoryDeleteModal").style.display = "flex";
+}
+
+function closeInventoryDeleteModal() {
+    document.getElementById("inventoryDeleteModal").style.display = "none";
+}
+
+function openRequestDeleteModal(url) {
+    document.getElementById("requestDeleteLink").href = url;
+    document.getElementById("requestDeleteModal").style.display = "flex";
+}
+
+function closeRequestDeleteModal() {
+    document.getElementById("requestDeleteModal").style.display = "none";
+}
+
+function openDeleteUserModal(url) {
+    document.getElementById("deleteUserConfirmBtn").onclick = function() {
+        window.location.href = url;
+    };
+    document.getElementById("deleteUserModal").style.display = "flex";
+}
+
+function closeDeleteUserModal() {
+    document.getElementById("deleteUserModal").style.display = "none";
+}
+
+function openDeleteDepartmentModal(url) {
+    document.getElementById("deleteDepartmentConfirmBtn").onclick = function() {
+        window.location.href = url;
+    };
+    document.getElementById("deleteDepartmentModal").style.display = "flex";
+}
+
+function closeDeleteDepartmentModal() {
+    document.getElementById("deleteDepartmentModal").style.display = "none";
+}
+
+function openRemoveMemberModal(url) {
+    document.getElementById("removeMemberConfirmBtn").onclick = function() {
+        window.location.href = url;
+    };
+    document.getElementById("removeMemberModal").style.display = "flex";
+}
+
+function closeRemoveMemberModal() {
+    document.getElementById("removeMemberModal").style.display = "none";
+}
+
+function filterByDepartment() {
+    const filter = document.getElementById("departmentFilter").value.toLowerCase();
+    const table = document.getElementById("requestsTable");
+    const rows = table.tBodies[0].rows;
+
+    for (let i = 0; i < rows.length; i++) {
+        // department cell is column 9 (index 9)
+        const deptCell = rows[i].cells[9];
+        if (!deptCell) continue;
+
+        const deptName = deptCell.innerText.trim().toLowerCase();
+
+        if (!filter || deptName === filter) {
+            rows[i].style.display = "";
+        } else {
+            rows[i].style.display = "none";
+        }
+    }
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    const select = document.getElementById("departmentFilter");
+    if (!select) return;
+
+    const seen = new Set();
+    const options = Array.from(select.options);
+
+    options.forEach(opt => {
+        if (opt.value === "") return; // keep "All Departments"
+        if (seen.has(opt.value)) {
+            opt.remove();
+        } else {
+            seen.add(opt.value);
+        }
+    });
+});
+
+function filterInventoryByDepartment() {
+    const filter = document.getElementById("inventoryDeptFilter").value.toLowerCase();
+    const table = document.getElementById("inventoryTable");
+    const rows = table.tBodies[0].rows;
+
+    for (let i = 0; i < rows.length; i++) {
+        // department is column 6
+        const deptCell = rows[i].cells[6];
+        if (!deptCell) continue;
+
+        const deptName = deptCell.innerText.trim().toLowerCase();
+
+        if (!filter || deptName === filter) {
+            rows[i].style.display = "";
+        } else {
+            rows[i].style.display = "none";
+        }
+    }
+}
+
+// deduplicate inventory dept filter options
+document.addEventListener("DOMContentLoaded", function () {
+    const select = document.getElementById("inventoryDeptFilter");
+    if (!select) return;
+
+    const seen = new Set();
+    Array.from(select.options).forEach(opt => {
+        if (opt.value === "") return;
+        if (seen.has(opt.value)) {
+            opt.remove();
+        } else {
+            seen.add(opt.value);
+        }
+    });
+});
+
+function exportInventoryCSV() {
+    const table = document.getElementById("inventoryTable");
+    if (!table) return;
+
+    const headers = ["Item", "Category", "Total Quantity", "Quantity Available", "Status", "Department"];
+    const rows = [];
+
+    // only visible rows
+    const tableRows = table.tBodies[0].rows;
+    for (let i = 0; i < tableRows.length; i++) {
+        const row = tableRows[i];
+        if (row.style.display === "none") continue;
+
+        const cells = row.cells;
+        rows.push([
+            cells[0]?.innerText.trim() || "",
+            cells[1]?.innerText.trim() || "",
+            cells[2]?.innerText.trim() || "",
+            cells[3]?.innerText.trim() || "",
+            cells[4]?.innerText.trim() || "",
+            cells[6]?.innerText.trim() || ""
+        ]);
+    }
+
+    // build CSV
+    const csvContent = [headers, ...rows]
+        .map(row => row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(","))
+        .join("\n");
+
+    // trigger download
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "inventory_export.csv";
+    link.click();
+    URL.revokeObjectURL(url);
 }
 
 // run once on page load
