@@ -333,7 +333,7 @@
                     {% endif %}
                 </td>
 
-                <td>{{ r.requesterID }}</td>
+                <td>{{ r.requester.userName if r.requester else r.requesterID }}</td>
 
                 
                 <td data-sort="{{ r.departmentID or 0 }}">
@@ -352,7 +352,8 @@
                             `{{ r.requestJustification|escape }}`,
                             `{{ r.eventDateStart.strftime('%Y-%m-%dT%H:%M') if r.eventDateStart else '' }}`,
                             `{{ r.eventDateEnd.strftime('%Y-%m-%dT%H:%M') if r.eventDateEnd else '' }}`,
-                            `{{ r.returnDate.strftime('%Y-%m-%dT%H:%M') if r.returnDate else '' }}`)"
+                            `{{ r.returnDate.strftime('%Y-%m-%dT%H:%M') if r.returnDate else '' }}`,
+                            '{{ r.departmentID }}')"
                             class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
                             Update
                         </button>

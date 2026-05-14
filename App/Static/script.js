@@ -39,7 +39,7 @@ function openAddModal() {
     document.getElementById("modal").style.display = "flex";
 }
 
-function openUpdateModal(id, title, justification, eventDateStart, eventDateEnd, returnDate) {
+function openUpdateModal(id, title, justification, eventDateStart, eventDateEnd, returnDate, deptID) {
     document.getElementById("modalTitle").innerText = "Update Request";
     document.getElementById("modalSubmitBtn").innerText = "Update";
     document.getElementById("requestForm").action = "/requests/" + id;
@@ -55,6 +55,13 @@ function openUpdateModal(id, title, justification, eventDateStart, eventDateEnd,
     if (eventDateEndField) eventDateEndField.value = eventDateEnd || "";
     if (returnDateField) returnDateField.value = returnDate || "";
     updateDateInputColours();
+
+    
+    const deptSelect = document.getElementById("departmentID");
+    if (deptSelect && deptID) {
+        deptSelect.value = deptID;
+    }
+
 
     resetItemPicker();
 
