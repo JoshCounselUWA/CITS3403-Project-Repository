@@ -792,7 +792,7 @@ def department_detail(dept_id):
     dept = session.query(Department).get(dept_id)
     if not dept:
         flash('Department not found', 'error')
-        return redirect(url_for('appsettings'))
+        return redirect(url_for('department_detail', dept_id=dept_id))
     
     members = (session.query(Membership).filter_by(departmentID=dept_id, status=MembershipStatus.accepted).all())
     pending = (session.query(Membership).filter_by(departmentID=dept_id, status=MembershipStatus.pending).all())
@@ -808,28 +808,28 @@ def invite_user(dept_id):
     
     if not username:
         flash('Username is required', 'error')
-        return redirect(url_for('appsettings'))
+        return redirect(url_for('department_detail', dept_id=dept_id))
     
     invitee = session.query(Account).filter_by(userName=username).first()
     if not invitee:
         flash(f'No user found with username -> {username}', 'error')
-        return redirect(url_for('appsettings'))
+        return redirect(url_for('department_detail', dept_id=dept_id))
     
     try:
         role = MembershipRole(role_str)
     except ValueError:
         flash('Invalid role', 'error')
-        return redirect(url_for('appsettings'))
+        return redirect(url_for('department_detail', dept_id=dept_id))
     
     existing = session.query(Membership).filter_by(userID=invitee.userID, departmentID=dept_id).first()
     
     if existing:
         if existing.status == MembershipStatus.accepted:
             flash(f'{username} is already a member of this department', 'error')
-            return redirect(url_for('appsettings'))
+            return redirect(url_for('department_detail', dept_id=dept_id))
         if existing.status == MembershipStatus.pending:
             flash(f'{username} has not accepted pending invite', 'error')
-            return redirect(url_for('appsettings'))
+            return redirect(url_for('department_detail', dept_id=dept_id))
         # status == declined → re-invite
         existing.status = MembershipStatus.pending
         existing.role = role
@@ -838,7 +838,7 @@ def invite_user(dept_id):
     
     session.commit()
     flash(f'Invitation sent to {username}', 'success')
-    return redirect(url_for('appsettings'))
+    return redirect(url_for('department_detail', dept_id=dept_id))
 
 @app.route('/invitations/<int:membership_id>/accept', methods=['POST'])
 @login_required
