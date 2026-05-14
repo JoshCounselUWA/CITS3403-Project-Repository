@@ -4,6 +4,7 @@ from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session as flask_session
 from forms import LoginForm, RegistrationForm
 from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.utils import secure_filename
 from models import session, Inventory, Request, Account, RequestItems, Status, Department, Branding, AccountType, Membership, MembershipRole, MembershipStatus
 from flask_cors import CORS
 from flask import flash, abort
@@ -264,6 +265,16 @@ def inventory_json():
         })
 
     return jsonify({"items": result})
+
+def save_uploaded_image(file):
+    filename = secure_filename(file.filename)
+    if not filename:
+        return None
+    timestamp = datetime.now().strftime('%Y%m%d%M')
+    filename = f"{timestamp}_{filename}"
+    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    file.save(filepath)
+    return url_for('static', filename=f'uploads/{filename}')
 
 #add inventory
 @app.route('/inventory/add', methods=['POST'])
