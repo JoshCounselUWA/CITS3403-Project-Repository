@@ -62,7 +62,6 @@ function openUpdateModal(id, title, justification, eventDateStart, eventDateEnd,
         deptSelect.value = deptID;
     }
 
-
     resetItemPicker();
 
     fetch('/requests/items/' + id)
