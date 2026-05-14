@@ -522,6 +522,15 @@ function bindFileInput() {
     });
 }
 
+function openDeleteModal(action) {
+    document.getElementById("deleteConfirmForm").action = action;
+    document.getElementById("deleteConfirmModal").style.display = "flex";
+}
+
+function closeDeleteModal() {
+    document.getElementById("deleteConfirmModal").style.display = "none";
+}
+
 // run once on page load
 document.addEventListener("DOMContentLoaded", bindFileInput);
 

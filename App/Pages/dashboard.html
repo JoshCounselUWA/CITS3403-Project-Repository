@@ -191,6 +191,43 @@ This page will have different content depending on who logs in, eg: different "u
             justify-content: space-between;
             width: 100%;
         }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(2, 6, 23, 0.75);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        .modal {
+            background: #020617;
+            padding: 20px;
+            width: 380px;
+            border-radius: 12px;
+            color: white;
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+        }
+
+        .modal h2 {
+            margin-bottom: 10px;
+        }
+
+        .modal p {
+            color: #94a3b8;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: space-between;
+        }
+
     </style>
 
 </head>
@@ -274,7 +311,8 @@ This page will have different content depending on who logs in, eg: different "u
                                             </button>
                                         </form>
                                         <form method="POST" action="/requests/delete_declined/{{ request.requestID }}">
-                                            <button onclick="return confirm('Delete this request?')"
+                                            <button type="button"
+                                                    onclick="openDeleteModal('/requests/delete_declined/{{ request.requestID }}')"
                                                     class="action-btn rounded-lg bg-sky-900 hover:bg-blue-800 px-4 py-2 text-white">
                                                 Delete
                                             </button>
@@ -361,6 +399,29 @@ This page will have different content depending on who logs in, eg: different "u
             </div>
         </div>
 
+    </div>
+
+    <!-- Delete Confirm Modal -->
+    <div class="modal-overlay" id="deleteConfirmModal">
+        <div class="modal">
+            <h2>Delete Request</h2>
+            <p>Are you sure you want to delete this request? This cannot be undone.</p>
+            <div class="modal-actions">
+                <button type="button"
+                        onclick="closeDeleteModal()"
+                        class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white"
+                        style="padding-left:16px; padding-right:16px;">
+                    Cancel
+                </button>
+                <form id="deleteConfirmForm" method="POST">
+                    <button type="submit"
+                            class="rounded-lg py-2 text-white"
+                            style="background:#991b1b; padding-left:16px; padding-right:16px;">
+                        Delete
+                    </button>
+                </form>
+            </div>
+        </div>
     </div>
 
 </body>
