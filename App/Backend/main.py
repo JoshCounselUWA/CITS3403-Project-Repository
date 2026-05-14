@@ -17,6 +17,7 @@ app.config['UPLOAD_FOLDER'] = os.path.join( os.path.dirname(__file__), '..', 'St
 CORS(app)
 login = LoginManager(app)
 login.login_view = 'login'
+login.login_message = None
 
 def save_uploaded_image(file):
     filename = secure_filename(file.filename)
@@ -110,7 +111,7 @@ def login():
             return redirect(url_for('login'))
 
         login_user(user, remember=form.remember_me.data)
-        flash(f'Welcome, {user.fName}!')
+        flash(f'Welcome, {user.fName}!', 'success')
         return redirect(url_for('dashboard'))
     
     return render_template('login.html', form=form)
@@ -119,7 +120,7 @@ def login():
 @login_required
 def logout():
     logout_user()
-    flash('You have been logged out succesfully')
+    flash('You have been logged out successfully', 'success')
     return redirect(url_for('login'))
 
 @app.route('/account/password', methods=['POST'])
