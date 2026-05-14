@@ -614,8 +614,15 @@ This page will have different content depending on who logs in, eg: different "u
 <!-- User Popout Panel -->
 <div class="user-popout" id="userPopout" style="width:480px;">
 
-    <div style="font-size:0.75rem; color:rgba(255,255,255,0.4); margin-bottom:4px;">
-        Account Settings
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <span style="font-size:0.75rem; color:rgba(255,255,255,0.4);">Account Settings</span>
+        <form method="POST" action="/logout">
+            <button type="submit"
+                    class="rounded-lg py-1 text-white"
+                    style="background:#991b1b; padding:6px 16px; font-size:0.8rem;">
+                Sign Out
+            </button>
+        </form>
     </div>
 
     <form method="POST" action="/account/update">
@@ -628,28 +635,19 @@ This page will have different content depending on who logs in, eg: different "u
         <label>Username</label>
         <input name="userName" value="{{ current_user.userName }}" placeholder="Username">
 
+        <button type="submit"
+                class="w-50 rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white"
+                style="margin-top:30px; width:40%;">
+            Save Changes
+        </button>
+
         <button type="button"
                 onclick="openChangePasswordModal()"
                 class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white"
-                style="width:100%; margin-top:4px;">
+                style="width:40%; margin-top:4px;">
             Change Password
         </button>
-
-        <button type="submit"
-                class="w-50 rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white"
-                style="margin-top:4px; width:100%;">
-            Save Changes
-        </button>
-    </form>
-
-    <hr class="user-popout-divider">
-
-    <form method="POST" action="/logout">
-        <button type="submit"
-                class="w-50 rounded-lg py-2 text-white"
-                style="background:#991b1b; width:100%;">
-            Sign Out
-        </button>
+        
     </form>
 
 </div>
