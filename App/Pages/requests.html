@@ -267,6 +267,7 @@
                 <th class="sortable" onclick="sortRequestsTable(6)">Event Date <span class="arrow">↕</span></th>
                 <th class="sortable" onclick="sortRequestsTable(7)">Return Date <span class="arrow">↕</span></th>
                 <th class="sortable" onclick="sortRequestsTable(8)">Requester <span class="arrow">↕</span></th>
+                <th class="sortable" onclick="sortRequestsTable(9)">Department <span class="arrow">↕</span></th>
                 <th class="actions">Manage</th>
             </tr>
         </thead>
@@ -334,6 +335,12 @@
 
                 <td>{{ r.requesterID }}</td>
 
+                
+                <td data-sort="{{ r.departmentID or 0 }}">
+                    {{ r.department.departmentName if r.department else '-' }}
+                </td>
+
+
 
                 <td class="actions">
                     {% if current_user.accountType == "business_admin"
@@ -377,7 +384,15 @@
         <input name="eventDateEnd" id="eventDateEnd" type="datetime-local">
         <label for="returnDate">Return Date</label>
         <input name="returnDate" id="returnDate" type="datetime-local">
-        <input name="departmentID" id="departmentID" type="number" placeholder="Department ID" required>
+        <select name="departmentID" id="departmentID" required
+                style="width:100%; padding:6px; margin-bottom:10px;
+                    background:rgba(255,255,255,0.02); color:white;
+                    border:1px solid rgba(255,255,255,0.15); border-radius:6px;">
+            <option value="" disabled selected>Select Department</option>
+            {% for dept in user_departments %}
+            <option value="{{ dept.departmentID }}">{{ dept.departmentName }}</option>
+            {% endfor %}
+        </select>
 
         <!-- Item Picker -->
         <hr class="item-picker-divider">

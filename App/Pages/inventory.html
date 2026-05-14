@@ -257,6 +257,7 @@
                 <th onclick="sortInventoryTable(3)">Quantity Available <span class="arrow">↕</span></th>
                 <th onclick="sortInventoryTable(4)">Status <span class="arrow">↕</span></th>
                 <th onclick="sortInventoryTable(5)">Photo <span class="arrow">↕</span></th>
+                <th onclick="sortInventoryTable(6)">Department <span class="arrow">↕</span></th>
                 <th class="actions">Actions</th>
             </tr>
         </thead>
@@ -286,6 +287,12 @@
                 {% endif %}
             </td>
 
+            
+            <td data-sort="{{ item.departmentID or 0 }}">
+                {{ item.department.departmentName if item.department else '-' }}
+            </td>
+
+
             <td class="actions">
                 {% if current_user.accountType == "business_admin"
                     or current_user.is_admin_of(item.departmentID) %}
@@ -295,7 +302,8 @@
                         '{{ item.itemName|escape }}',
                         '{{ item.itemDescription|escape }}',
                         '{{ item.itemquantity }}',
-                        '{{ item.itemphoto|escape }}')"
+                        '{{ item.itemphoto|escape }}',
+                        '{{ item.departmentID }}')"
                         class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
                         Update
                     </button>
@@ -337,7 +345,15 @@
 
         <span id="fileName" style="color:rgba(255,255,255,0.6); font-size:0.85rem;"></span>
 
-        <input name="departmentID" id="departmentID" type="number" placeholder="Department ID" required>
+        <select name="departmentID" id="departmentID" required
+                style="width:100%; padding:6px; margin-bottom:10px;
+                    background:rgba(255,255,255,0.02); color:white;
+                    border:1px solid rgba(255,255,255,0.15); border-radius:6px;">
+            <option value="" disabled selected>Select Department</option>
+            {% for dept in user_departments %}
+            <option value="{{ dept.departmentID }}">{{ dept.departmentName }}</option>
+            {% endfor %}
+        </select>
 
         <div class="modal-actions">
             <button type="button" onclick="closeItemModal()" class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">Cancel</button>

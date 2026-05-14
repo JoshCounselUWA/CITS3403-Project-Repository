@@ -12,8 +12,10 @@ function sortRequestsTable(col) {
     const asc = requestsSortState[col];
 
     rows.sort((a, b) => {
-        let A = a.cells[col].innerText.trim();
-        let B = b.cells[col].innerText.trim();
+        
+        let A = a.cells[col].dataset.sort ?? a.cells[col].innerText.trim();
+        let B = b.cells[col].dataset.sort ?? b.cells[col].innerText.trim();
+
         const numA = parseFloat(A);
         const numB = parseFloat(B);
         if (!isNaN(numA) && !isNaN(numB)) return asc ? numA - numB : numB - numA;
@@ -283,8 +285,10 @@ function sortInventoryTable(col) {
     const asc = inventorySortState[col];
 
     rows.sort((a, b) => {
-        let A = a.cells[col].innerText.trim();
-        let B = b.cells[col].innerText.trim();
+        
+        let A = a.cells[col].dataset.sort ?? a.cells[col].innerText.trim();
+        let B = b.cells[col].dataset.sort ?? b.cells[col].innerText.trim();
+
         const numA = parseFloat(A);
         const numB = parseFloat(B);
         if (!isNaN(numA) && !isNaN(numB)) return asc ? numA - numB : numB - numA;
@@ -317,7 +321,7 @@ function openAddItemModal() {
     document.getElementById("modal").style.display = "flex";
 }
 
-function openUpdateItemModal(id, name, description, quantity, photo) {
+function openUpdateItemModal(id, name, description, quantity, photo, deptID) {
     document.getElementById("modalTitle").innerText = "Update Item";
     document.getElementById("modalSubmitBtn").innerText = "Update";
     document.getElementById("itemForm").action = "/inventory/" + id;
@@ -326,6 +330,13 @@ function openUpdateItemModal(id, name, description, quantity, photo) {
     document.getElementById("itemDescription").value = description;
     document.getElementById("itemquantity").value = quantity;
     document.getElementById("itemphoto").value = photo;
+
+    //set dropdown
+    const deptSelect = document.getElementById("departmentID");
+    if (deptSelect && deptID) {
+        deptSelect.value = deptID;
+    }
+
     document.getElementById("modal").style.display = "flex";
 }
 
@@ -436,8 +447,10 @@ function sortSimpleTable(tableId, col) {
     const asc = table.sortState[col];
 
     rows.sort((a, b) => {
-        let A = a.cells[col].innerText.trim().toLowerCase();
-        let B = b.cells[col].innerText.trim().toLowerCase();
+        
+        let A = a.cells[col].dataset.sort ?? a.cells[col].innerText.trim();
+        let B = b.cells[col].dataset.sort ?? b.cells[col].innerText.trim();
+
 
         const numA = parseFloat(A);
         const numB = parseFloat(B);
@@ -496,7 +509,7 @@ function bindFileInput() {
         // update url field
         urlInput.value = tempUrl;
 
-        // ✅ add filename display here
+        // add filename display here
         if (fileNameDisplay) {
             fileNameDisplay.textContent = file.name;
         }

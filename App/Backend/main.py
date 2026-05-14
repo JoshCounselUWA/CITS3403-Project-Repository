@@ -152,7 +152,17 @@ def register():
 @app.route('/inventory')
 @login_required
 def inventory():
-    items = session.query(Inventory).all()
+
+    if current_user.accountType == "business_admin":
+        items = session.query(Inventory).all()
+    else:
+        dept_ids = [
+            m.departmentID for m in current_user.memberships
+            if m.status.value == "accepted"
+        ]
+        items = session.query(Inventory).filter(
+            Inventory.departmentID.in_(dept_ids)
+        ).all()
 
     for item in items:
         outgoing_items = (
@@ -175,12 +185,31 @@ def inventory():
             0
         )
 
-    return render_template("inventory.html", items=items)
+    if current_user.accountType == "business_admin":
+        user_departments = session.query(Department).all()
+    else:
+        user_departments = [
+            m.department for m in current_user.memberships
+            if m.status.value == "accepted"
+        ]
+
+    return render_template("inventory.html", items=items, user_departments=user_departments)
 
 @app.route('/inventory/json')
 @login_required
 def inventory_json():
-    items = session.query(Inventory).all()
+
+    if current_user.accountType == "business_admin":
+        items = session.query(Inventory).all()
+    else:
+        dept_ids = [
+            m.departmentID for m in current_user.memberships
+            if m.status.value == "accepted"
+        ]
+        items = session.query(Inventory).filter(
+            Inventory.departmentID.in_(dept_ids)
+        ).all()
+
     result = []
 
     for item in items:
@@ -210,9 +239,7 @@ def inventory_json():
             "itemphoto": item.itemphoto
         })
 
-    return jsonify({
-        "items": result
-    })
+    return jsonify({"items": result})
 
 #add inventory
 @app.route('/inventory/add', methods=['POST'])
@@ -310,8 +337,27 @@ def update_inventory(item_id):
 @app.route('/requests')
 @login_required
 def requests_page():
-    requests = session.query(Request).all()
-    return render_template("requests.html", requests=requests)
+
+    if current_user.accountType == "business_admin":
+        requests = session.query(Request).all()
+    else:
+        dept_ids = [
+            m.departmentID for m in current_user.memberships
+            if m.status.value == "accepted"
+        ]
+        requests = session.query(Request).filter(
+            Request.departmentID.in_(dept_ids)
+        ).all()
+
+    if current_user.accountType == "business_admin":
+        user_departments = session.query(Department).all()
+    else:
+        user_departments = [
+            m.department for m in current_user.memberships
+            if m.status.value == "accepted"
+        ]
+
+    return render_template("requests.html", requests=requests, user_departments=user_departments)
 
 #make request
 @app.route('/requests/add', methods=['POST'])
