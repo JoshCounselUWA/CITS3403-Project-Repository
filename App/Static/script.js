@@ -581,6 +581,79 @@ function closeRemoveMemberModal() {
     document.getElementById("removeMemberModal").style.display = "none";
 }
 
+function filterByDepartment() {
+    const filter = document.getElementById("departmentFilter").value.toLowerCase();
+    const table = document.getElementById("requestsTable");
+    const rows = table.tBodies[0].rows;
+
+    for (let i = 0; i < rows.length; i++) {
+        // department cell is column 9 (index 9)
+        const deptCell = rows[i].cells[9];
+        if (!deptCell) continue;
+
+        const deptName = deptCell.innerText.trim().toLowerCase();
+
+        if (!filter || deptName === filter) {
+            rows[i].style.display = "";
+        } else {
+            rows[i].style.display = "none";
+        }
+    }
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    const select = document.getElementById("departmentFilter");
+    if (!select) return;
+
+    const seen = new Set();
+    const options = Array.from(select.options);
+
+    options.forEach(opt => {
+        if (opt.value === "") return; // keep "All Departments"
+        if (seen.has(opt.value)) {
+            opt.remove();
+        } else {
+            seen.add(opt.value);
+        }
+    });
+});
+
+function filterInventoryByDepartment() {
+    const filter = document.getElementById("inventoryDeptFilter").value.toLowerCase();
+    const table = document.getElementById("inventoryTable");
+    const rows = table.tBodies[0].rows;
+
+    for (let i = 0; i < rows.length; i++) {
+        // department is column 6
+        const deptCell = rows[i].cells[6];
+        if (!deptCell) continue;
+
+        const deptName = deptCell.innerText.trim().toLowerCase();
+
+        if (!filter || deptName === filter) {
+            rows[i].style.display = "";
+        } else {
+            rows[i].style.display = "none";
+        }
+    }
+}
+
+// deduplicate inventory dept filter options
+document.addEventListener("DOMContentLoaded", function () {
+    const select = document.getElementById("inventoryDeptFilter");
+    if (!select) return;
+
+    const seen = new Set();
+    Array.from(select.options).forEach(opt => {
+        if (opt.value === "") return;
+        if (seen.has(opt.value)) {
+            opt.remove();
+        } else {
+            seen.add(opt.value);
+        }
+    });
+});
+
 // run once on page load
 document.addEventListener("DOMContentLoaded", bindFileInput);
 

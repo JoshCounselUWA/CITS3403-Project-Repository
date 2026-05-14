@@ -38,7 +38,7 @@
     .search-bar {
         position: fixed;
         top: 90px;
-        left: 300px;
+        left: 520px;
         z-index: 50;
         width: 280px;
     }
@@ -220,6 +220,39 @@
         color: white;
     }
 
+    .filter-bar {
+        position: fixed;
+        top: 90px;
+        left: 300px;
+        z-index: 50;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .dept-filter {
+        padding: 8px 10px;
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 8px;
+        color: white;
+        min-width: 200px;
+        cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+    }
+
+    .dept-filter:focus {
+        outline: none;
+        border-color: #38bdf8;
+        background: rgba(56,189,248,0.05);
+    }
+
+    .dept-filter option {
+        background: #020617;
+        color: white;
+    }
+
 </style>
 
 </head>
@@ -264,9 +297,26 @@
 </button>
 {% endif %}
 
-<!-- SEARCH BAR -->
-<div class="search-bar">
-    <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="Search items...">
+<!-- FILTER + SEARCH BAR -->
+<div style="position:fixed; top:90px; left:300px; z-index:50; display:flex; gap:10px;">
+
+    <select id="inventoryDeptFilter"
+            onchange="filterInventoryByDepartment()"
+            class="dept-filter">
+        <option value="">All Departments</option>
+        {% for item in items %}
+            {% if item.department %}
+                <option value="{{ item.department.departmentName }}">
+                    {{ item.department.departmentName }}
+                </option>
+            {% endif %}
+        {% endfor %}
+    </select>
+
+    <div class="search-bar">
+        <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="Search items...">
+    </div>
+
 </div>
 
 <!-- Table -->

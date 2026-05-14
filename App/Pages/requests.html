@@ -238,6 +238,29 @@
         background: #020617;
         color: white;
     }
+
+    .dept-filter {
+        padding: 8px 10px;
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.15);
+        border-radius: 8px;
+        color: white;
+        min-width: 200px;
+        cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+    }
+
+    .dept-filter:focus {
+        outline: none;
+        border-color: #38bdf8;
+        background: rgba(56,189,248,0.05);
+    }
+
+    .dept-filter option {
+        background: #020617;
+        color: white;
+    }
     
 </style>
 
@@ -271,6 +294,22 @@
     {% if current_user.accountType == "business_admin" %}
     <button onclick="window.location.href='appsettings'" class="w-50 rounded-lg bg-sky-900 py-2 hover:bg-blue-800">App Settings</button>
     {% endif %}
+</div>
+
+<!-- Department Filter -->
+<div style="position:fixed; top:90px; left:300px; z-index:50;">
+    <select id="departmentFilter"
+            onchange="filterByDepartment()"
+            class="dept-filter">
+        <option value="">All Departments</option>
+        {% for r in requests %}
+            {% if r.department %}
+                <option value="{{ r.department.departmentName }}">
+                    {{ r.department.departmentName }}
+                </option>
+            {% endif %}
+        {% endfor %}
+    </select>
 </div>
 
 <button onclick="openAddModal()" class="add-request-btn rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
