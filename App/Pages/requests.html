@@ -386,6 +386,9 @@
                     {% elif status == 'overdue' %}
                         <span style="color:#f97316; background:rgba(249,115,22,0.15); padding:3px 8px; border-radius:4px;">Overdue</span>
 
+                    {% elif status == 'returned' %}
+                        <span style="color:#a78bfa; background:rgba(167,139,250,0.15); padding:3px 8px; border-radius:4px;">Returned</span>
+
                     {% else %}
                         {{ r.status.value }}
                     {% endif %}
