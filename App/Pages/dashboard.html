@@ -267,6 +267,83 @@ This page will have different content depending on who logs in, eg: different "u
             gap: 8px;
         }
 
+        .user-panel-btn {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            padding: 0 24px;
+        }
+
+        .user-panel-btn button {
+            width: 100%;
+            text-align: left;
+            padding: 10px 12px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+        }
+
+        .user-panel-btn button:hover {
+            background: rgba(255,255,255,0.08);
+        }
+
+        .user-popout {
+            position: fixed;
+            bottom: 52px;
+            left: 0;
+            width: 480px;
+            background: #0f172a;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 16px;
+            z-index: 200;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .user-popout.open {
+            display: flex;
+        }
+
+        .user-popout input {
+            width: 100%;
+            padding: 6px 8px;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 6px;
+            color: white;
+            font-size: 0.85rem;
+            box-sizing: border-box;
+        }
+
+        .user-popout input:focus {
+            outline: none;
+            border-color: #38bdf8;
+            background: rgba(56,189,248,0.05);
+        }
+
+        .user-popout label {
+            color: rgba(255,255,255,0.5);
+            font-size: 0.75rem;
+            margin-bottom: 2px;
+            display: block;
+        }
+
+        .user-popout-divider {
+            border: none;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            margin: 4px 0;
+        }
+
     </style>
 
 </head>
@@ -533,6 +610,117 @@ This page will have different content depending on who logs in, eg: different "u
             </div>
         </div>
     </div>
+
+<!-- User Popout Panel -->
+<div class="user-popout" id="userPopout" style="width:480px;">
+
+    <div style="font-size:0.75rem; color:rgba(255,255,255,0.4); margin-bottom:4px;">
+        Account Settings
+    </div>
+
+    <form method="POST" action="/account/update">
+        <label>First Name</label>
+        <input name="fName" value="{{ current_user.fName }}" placeholder="First Name">
+
+        <label>Last Name</label>
+        <input name="lName" value="{{ current_user.lName }}" placeholder="Last Name">
+
+        <label>Username</label>
+        <input name="userName" value="{{ current_user.userName }}" placeholder="Username">
+
+        <button type="button"
+                onclick="openChangePasswordModal()"
+                class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white"
+                style="width:100%; margin-top:4px;">
+            Change Password
+        </button>
+
+        <button type="submit"
+                class="w-50 rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white"
+                style="margin-top:4px; width:100%;">
+            Save Changes
+        </button>
+    </form>
+
+    <hr class="user-popout-divider">
+
+    <form method="POST" action="/logout">
+        <button type="submit"
+                class="w-50 rounded-lg py-2 text-white"
+                style="background:#991b1b; width:100%;">
+            Sign Out
+        </button>
+    </form>
+
+</div>
+
+<!-- Click outside to close -->
+<div id="userPanelBackdrop"
+     style="display:none; position:fixed; inset:0; z-index:199;"
+     onclick="closeUserPanel()">
+</div>
+
+<!-- User Account Button (fixed bottom left) -->
+<button onclick="toggleUserPanel()"
+        style="position:fixed; bottom:0; left:0; width:256px; z-index:201;
+               padding:20px 20px;
+               background:#0f172a;
+               border:none;
+               border-top:1px solid rgba(255,255,255,0.08);
+               color:white;
+               text-align:left;
+               display:flex;
+               align-items:center;
+               gap:10px;
+               font-size:1.2rem;
+               cursor:pointer;">
+    👤 {{ current_user.fName }} {{ current_user.lName }}
+</button>
+
+<!-- Change Password Modal -->
+<div class="modal-overlay" id="changePasswordModal">
+    <div class="modal">
+        <h2>Change Password</h2>
+        <form id="changePasswordForm" action="/account/password" method="POST">
+            <label style="color:rgba(255,255,255,0.5); font-size:0.8rem;">Current Password</label>
+            <input name="current_password" type="password" placeholder="Current Password"
+                   style="width:100%; padding:6px; margin-bottom:10px;
+                          background:rgba(255,255,255,0.02); color:white;
+                          border:1px solid rgba(255,255,255,0.15); border-radius:6px;
+                          box-sizing:border-box;">
+
+            <label style="color:rgba(255,255,255,0.5); font-size:0.8rem;">New Password</label>
+            <input name="new_password" type="password" placeholder="New Password"
+                   style="width:100%; padding:6px; margin-bottom:10px;
+                          background:rgba(255,255,255,0.02); color:white;
+                          border:1px solid rgba(255,255,255,0.15); border-radius:6px;
+                          box-sizing:border-box;">
+
+            <label style="color:rgba(255,255,255,0.5); font-size:0.8rem;">Confirm New Password</label>
+            <input name="confirm_password" type="password" placeholder="Confirm Password"
+                   style="width:100%; padding:6px; margin-bottom:16px;
+                          background:rgba(255,255,255,0.02); color:white;
+                          border:1px solid rgba(255,255,255,0.15); border-radius:6px;
+                          box-sizing:border-box;">
+            <p id="passwordError"
+            style="color:#ef4444; font-size:0.85rem; margin-bottom:10px; min-height:18px;">
+            </p>
+            <div class="modal-actions">
+                <button type="button"
+                        onclick="closeChangePasswordModal()"
+                        class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white"
+                        style="padding-left:16px; padding-right:16px;">
+                    Cancel
+                </button>
+                <button type="submit"
+                        class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white"
+                        style="padding-left:16px; padding-right:16px;">
+                    Update Password
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 
 </body>
 </html>
