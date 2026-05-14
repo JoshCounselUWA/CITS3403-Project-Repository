@@ -298,18 +298,26 @@
 
 <!-- Department Filter -->
 <div style="position:fixed; top:90px; left:300px; z-index:50;">
-    <select id="departmentFilter"
-            onchange="filterByDepartment()"
-            class="dept-filter">
-        <option value="">All Departments</option>
-        {% for r in requests %}
-            {% if r.department %}
-                <option value="{{ r.department.departmentName }}">
-                    {{ r.department.departmentName }}
-                </option>
-            {% endif %}
-        {% endfor %}
-    </select>
+   
+    <div style="position:relative; display:flex; align-items:center;">
+        <span style="position:absolute; left:10px; color:rgba(255,255,255,0.5); pointer-events:none; font-size:0.9rem;">
+            ⛉
+        </span>
+        <select id="departmentFilter"
+                onchange="filterByDepartment()"
+                class="dept-filter"
+                style="padding-left:28px;">
+            <option value="">All Departments</option>
+            {% for r in requests %}
+                {% if r.department %}
+                    <option value="{{ r.department.departmentName }}">
+                        {{ r.department.departmentName }}
+                    </option>
+                {% endif %}
+            {% endfor %}
+        </select>
+    </div>
+
 </div>
 
 <button onclick="openAddModal()" class="add-request-btn rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
