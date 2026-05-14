@@ -310,12 +310,25 @@ function sortInventoryTable(col) {
 function searchTable() {
     const input = document.getElementById("searchInput");
     if (!input) return;
+
     const filter = input.value.toLowerCase();
+    const deptFilter = document.getElementById("inventoryDeptFilter");
+    const activeDept = deptFilter ? deptFilter.value.toLowerCase() : "";
+
     const table = document.getElementById("inventoryTable");
     const rows = table.getElementsByTagName("tr");
+
     for (let i = 1; i < rows.length; i++) {
         const row = rows[i];
-        row.style.display = row.innerText.toLowerCase().includes(filter) ? "" : "none";
+
+        // department cell is column 6
+        const deptCell = row.cells[6];
+        const deptName = deptCell ? deptCell.innerText.trim().toLowerCase() : "";
+
+        const matchesDept = !activeDept || deptName === activeDept;
+        const matchesSearch = row.innerText.toLowerCase().includes(filter);
+
+        row.style.display = (matchesDept && matchesSearch) ? "" : "none";
     }
 }
 
