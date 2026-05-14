@@ -115,12 +115,34 @@ def login():
     
     return render_template('login.html', form=form)
 
-@app.route('/logout')
+@app.route('/logout', methods=['GET', 'POST'])
 @login_required
 def logout():
     logout_user()
     flash('You have been logged out succesfully')
     return redirect(url_for('login'))
+
+@app.route('/account/password', methods=['POST'])
+@login_required
+def change_password():
+    current_pw = request.form.get('current_password', '')
+    new_pw = request.form.get('new_password', '')
+    confirm_pw = request.form.get('confirm_password', '')
+
+    # check current password
+    if not check_password_hash(current_user.password_hash, current_pw):
+        return jsonify({'error': 'Current password is incorrect'}), 400
+
+    if new_pw != confirm_pw:
+        return jsonify({'error': 'New passwords do not match'}), 400
+
+    if len(new_pw) < 6:
+        return jsonify({'error': 'Password must be at least 6 characters'}), 400
+
+    current_user.password_hash = generate_password_hash(new_pw)
+    session.commit()
+
+    return jsonify({'success': True}), 200
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -974,6 +996,28 @@ def update_member_role(dept_id, membership_id):
         flash('Invalid role', 'error')
 
     return redirect(url_for('department_detail', dept_id=dept_id))
+
+@app.route('/account/update', methods=['POST'])
+@login_required
+def update_account():
+    current_user.fName = request.form.get('fName', current_user.fName)
+    current_user.lName = request.form.get('lName', current_user.lName)
+
+    new_username = request.form.get('userName', '').strip()
+    if new_username and new_username != current_user.userName:
+        existing = session.query(Account).filter_by(userName=new_username).first()
+        if existing:
+            flash('Username already taken', 'error')
+            return redirect(url_for('dashboard'))
+        current_user.userName = new_username
+
+    new_password = request.form.get('password', '').strip()
+    if new_password:
+        current_user.password_hash = generate_password_hash(new_password)
+
+    session.commit()
+    flash('Account updated', 'success')
+    return redirect(url_for('dashboard'))
 
 if __name__ == "__main__":
     app.run(debug=True)

@@ -706,6 +706,94 @@ function exportInventoryCSV() {
     URL.revokeObjectURL(url);
 }
 
+function toggleUserPanel() {
+    const panel = document.getElementById("userPopout");
+    const backdrop = document.getElementById("userPanelBackdrop");
+
+    if (panel.classList.contains("open")) {
+        panel.classList.remove("open");
+        backdrop.style.display = "none";
+    } else {
+        panel.classList.add("open");
+        backdrop.style.display = "block";
+    }
+}
+
+function closeUserPanel() {
+    document.getElementById("userPopout").classList.remove("open");
+    document.getElementById("userPanelBackdrop").style.display = "none";
+}
+
+function openChangePasswordModal() {
+    closeUserPanel();
+    document.getElementById("changePasswordModal").style.display = "flex";
+}
+
+function closeChangePasswordModal() {
+    document.getElementById("changePasswordModal").style.display = "none";
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("changePasswordForm");
+    if (!form) return;
+
+    form.addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        const current = form.querySelector("[name='current_password']").value.trim();
+        const newPw = form.querySelector("[name='new_password']").value;
+        const confirm = form.querySelector("[name='confirm_password']").value;
+        const errorEl = document.getElementById("passwordError");
+
+        errorEl.textContent = "";
+
+        // client-side checks
+        if (!current) {
+            errorEl.textContent = "Please enter your current password.";
+            return;
+        }
+
+        if (!newPw) {
+            errorEl.textContent = "Please enter a new password.";
+            return;
+        }
+
+        if (newPw.length < 6) {
+            errorEl.textContent = "New password must be at least 6 characters.";
+            return;
+        }
+
+        if (newPw !== confirm) {
+            errorEl.textContent = "New passwords do not match.";
+            return;
+        }
+
+        // send to backend
+        const formData = new FormData(form);
+
+        fetch('/account/password', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                // show error INSIDE modal
+                errorEl.textContent = data.error;
+            } else {
+                // success — close modal
+                document.getElementById("changePasswordModal").style.display = "none";
+                form.reset();
+                errorEl.textContent = "";
+                alert("Password updated successfully.");
+            }
+        })
+        .catch(() => {
+            errorEl.textContent = "Something went wrong. Please try again.";
+        });
+    });
+});
+
 // run once on page load
 document.addEventListener("DOMContentLoaded", bindFileInput);
 
