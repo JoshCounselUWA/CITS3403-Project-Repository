@@ -693,6 +693,33 @@ def get_calendar_events():
         "overdue": [r.to_json() for r in overdue]
     })
 
+# mark request as returned
+@app.route('/requests/return/<int:request_id>', methods=['POST'])
+@login_required
+def return_request(request_id):
+    req = session.query(Request).get(request_id)
+
+    if not req:
+        flash('Request not found', 'error')
+        return redirect(url_for('dashboard'))
+
+    # permission check
+    if (current_user.accountType != "business_admin"
+            and not current_user.is_admin_of(req.departmentID)
+            and current_user.userID != req.requesterID):
+        abort(403)
+
+    # only allow if loaned or overdue
+    if req.status.value.lower() not in ['loaned', 'overdue']:
+        flash('Only loaned or overdue requests can be returned', 'error')
+        return redirect(url_for('dashboard'))
+
+    req.status = Status.returned
+    session.commit()
+
+    flash('Item returned successfully', 'success')
+    return redirect(url_for('dashboard'))
+
 # mark request as loaned
 @app.route('/requests/loan/<int:request_id>', methods=['POST'])
 @login_required

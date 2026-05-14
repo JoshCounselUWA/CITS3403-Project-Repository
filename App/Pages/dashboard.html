@@ -385,11 +385,21 @@ This page will have different content depending on who logs in, eg: different "u
                         or current_user.is_admin_of(request.departmentID) %}
                         {% if request.status.value.lower() == 'loaned' %}
                             {% set ns2.found_loans = true %}
-                            <div class="loan-card">
-                                <div class="card-title">{{ request.requestTitle }}</div>
-                                <div class="card-description">{{ request.requestJustification or 'No justification provided' }}</div>
-                                <div class="card-meta">
-                                    Due: <span class="due-date">{{ request.returnDate.strftime('%Y-%m-%d') if request.returnDate else 'N/A' }}</span>
+                            <div class="loan-card" style="display:flex; align-items:center; justify-content:space-between;">
+                                <div class="flex-1">
+                                    <div class="card-title">{{ request.requestTitle }}</div>
+                                    <div class="card-description">{{ request.requestJustification or 'No justification provided' }}</div>
+                                    <div class="card-meta">
+                                        Due: <span class="due-date">{{ request.returnDate.strftime('%Y-%m-%d') if request.returnDate else 'N/A' }}</span>
+                                    </div>
+                                </div>
+
+                                <div class="ml-auto mr-4">
+                                    /requests/return/{{ request.requestID }}
+                                        <button class="action-btn rounded-lg bg-sky-900 hover:bg-blue-800 px-4 py-2 text-white">
+                                            Return
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
                         {% endif %}
@@ -443,6 +453,14 @@ This page will have different content depending on who logs in, eg: different "u
                                 <div class="card-meta" style="margin-top:4px;">
                                     Was due: <span class="due-date">{{ request.returnDate.strftime('%Y-%m-%d') if request.returnDate else 'N/A' }}</span>
                                 </div>
+                            </div>
+
+                            <div class="ml-auto mr-4">
+                                /requests/return/{{ request.requestID }}
+                                    <button class="action-btn rounded-lg bg-sky-900 hover:bg-blue-800 px-4 py-2 text-white">
+                                        Return
+                                    </button>
+                                </form>
                             </div>
                         </div>
 
