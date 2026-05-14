@@ -353,7 +353,7 @@
             {% for r in requests %}
             <tr>
                 <td class="actions">
-                    {% if r.status.value.lower() != 'loaned'
+                    {% if r.status.value.lower() not in ['loaned', 'overdue']
                         and (current_user.accountType == "business_admin"
                             or current_user.is_admin_of(r.departmentID)) %}
                         <button onclick="openActionModal('{{ r.requestID }}')" class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
@@ -372,16 +372,19 @@
                     {% set status = r.status.value|lower %}
 
                     {% if status == 'approved' %}
-                        <span style="color:#22c55e;">Approved</span>
+                        <span style="color:#22c55e; background:rgba(34,197,94,0.15); padding:3px 8px; border-radius:4px;">Approved</span>
 
                     {% elif status == 'declined' %}
-                        <span style="color:#ef4444;">Declined</span>
+                        <span style="color:#ef4444; background:rgba(239,68,68,0.15); padding:3px 8px; border-radius:4px;">Declined</span>
 
                     {% elif status == 'waiting' %}
-                        <span style="color:#facc15;">Waiting</span>
+                        <span style="color:#facc15; background:rgba(250,204,21,0.15); padding:3px 8px; border-radius:4px;">Waiting</span>
 
                     {% elif status == 'loaned' %}
-                        <span style="color:#256eff;">Loaned</span>
+                        <span style="color:#256eff; background:rgba(37,110,255,0.15); padding:3px 8px; border-radius:4px;">Loaned</span>
+
+                    {% elif status == 'overdue' %}
+                        <span style="color:#f97316; background:rgba(249,115,22,0.15); padding:3px 8px; border-radius:4px;">Overdue</span>
 
                     {% else %}
                         {{ r.status.value }}

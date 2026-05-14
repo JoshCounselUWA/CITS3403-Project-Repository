@@ -352,6 +352,19 @@ def requests_page():
             Request.departmentID.in_(dept_ids)
         ).all()
 
+    # auto-mark overdue
+    now = datetime.now()
+    changed = False
+    for req in requests:
+        if (req.returnDate
+                and req.returnDate < now
+                and req.status == Status.loaned):
+            req.status = Status.overdue
+            changed = True
+
+    if changed:
+        session.commit()
+
     if current_user.accountType == "business_admin":
         user_departments = session.query(Department).all()
     else:
