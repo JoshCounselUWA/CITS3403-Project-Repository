@@ -881,5 +881,24 @@ def decline_invitation(membership_id):
     flash('Invitation declined', 'success')
     return redirect(url_for('dashboard'))
 
+@app.route('/appsettings/users/delete/<int:user_id>')
+@business_admin_required
+def delete_user(user_id):
+    user = session.query(Account).get(user_id)
+
+    if not user:
+        flash('User not found', 'error')
+        return redirect(url_for('appsettings'))
+
+    if user.userID == current_user.userID:
+        flash('You cannot delete your own account', 'error')
+        return redirect(url_for('appsettings'))
+
+    session.delete(user)
+    session.commit()
+
+    flash('Account deleted', 'success')
+    return redirect(url_for('appsettings'))
+
 if __name__ == "__main__":
     app.run(debug=True)

@@ -549,6 +549,17 @@ function closeRequestDeleteModal() {
     document.getElementById("requestDeleteModal").style.display = "none";
 }
 
+function openDeleteUserModal(url) {
+    document.getElementById("deleteUserConfirmBtn").onclick = function() {
+        window.location.href = url;
+    };
+    document.getElementById("deleteUserModal").style.display = "flex";
+}
+
+function closeDeleteUserModal() {
+    document.getElementById("deleteUserModal").style.display = "none";
+}
+
 // run once on page load
 document.addEventListener("DOMContentLoaded", bindFileInput);
 

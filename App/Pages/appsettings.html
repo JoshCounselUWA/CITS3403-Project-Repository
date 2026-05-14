@@ -280,6 +280,7 @@
                 <th onclick="sortUsersTable(0)">User ID <span class="arrow">↕</span></th>
                 <th onclick="sortUsersTable(1)">Username <span class="arrow">↕</span></th>
                 <th onclick="sortUsersTable(2)">Account Type <span class="arrow">↕</span></th>
+                <th class="actions">Actions</th>
             </tr>
         </thead>
 
@@ -307,6 +308,16 @@
                     <span style="color:rgba(255,255,255,0.6);">
                         {{ u.accountType }}
                     </span>
+                {% endif %}
+            </td>
+
+            <td class="actions">
+                {% if u.userID != current_user.userID %}
+                    <button type="button"
+                            onclick="openDeleteUserModal('/appsettings/users/delete/{{ u.userID }}')"
+                            class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
+                        Delete
+                    </button>
                 {% endif %}
             </td>
         </tr>
@@ -351,6 +362,30 @@
             </button>
         </div>
     </form>
+</div>
+
+<!-- Delete User Confirm Modal -->
+<div class="modal-overlay" id="deleteUserModal">
+    <div class="modal">
+        <h2>Delete Account</h2>
+        <p style="color:#94a3b8; font-size:0.9rem; margin-bottom:20px;">
+            Are you sure you want to delete this account? This cannot be undone.
+        </p>
+        <div class="modal-actions">
+            <button type="button"
+                    onclick="closeDeleteUserModal()"
+                    class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white"
+                    style="padding-left:16px; padding-right:16px;">
+                Cancel
+            </button>
+            <button type="button"
+                    id="deleteUserConfirmBtn"
+                    style="background:#991b1b; padding-left:16px; padding-right:16px;"
+                    class="rounded-lg py-2 text-white">
+                Delete
+            </button>
+        </div>
+    </div>
 </div>
 
 </body>
