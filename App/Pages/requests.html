@@ -353,7 +353,7 @@
             {% for r in requests %}
             <tr>
                 <td class="actions">
-                    {% if r.status.value.lower() not in ['loaned', 'overdue']
+                    {% if r.status.value.lower() not in ['loaned', 'overdue', 'returned']
                         and (current_user.accountType == "business_admin"
                             or current_user.is_admin_of(r.departmentID)) %}
                         <button onclick="openActionModal('{{ r.requestID }}')" class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
