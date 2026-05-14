@@ -929,7 +929,7 @@ def accept_invitation(membership_id):
     m.status = MembershipStatus.accepted
     session.commit()
     flash(f'Joined {m.department.departmentName}', 'success')
-    return redirect(url_for('dashboard'))
+    return redirect(request.referrer or url_for('dashboard'))
 
 
 @app.route('/invitations/<int:membership_id>/decline', methods=['POST'])
@@ -1008,16 +1008,12 @@ def update_account():
         existing = session.query(Account).filter_by(userName=new_username).first()
         if existing:
             flash('Username already taken', 'error')
-            return redirect(url_for('dashboard'))
+            return redirect(request.referrer or url_for('dashboard'))
         current_user.userName = new_username
-
-    new_password = request.form.get('password', '').strip()
-    if new_password:
-        current_user.password_hash = generate_password_hash(new_password)
 
     session.commit()
     flash('Account updated', 'success')
-    return redirect(url_for('dashboard'))
+    return redirect(request.referrer or url_for('dashboard'))
 
 if __name__ == "__main__":
     app.run(debug=True)
