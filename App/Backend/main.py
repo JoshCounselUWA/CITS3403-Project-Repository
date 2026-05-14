@@ -259,7 +259,8 @@ def inventory_json():
             "itemDescription": item.itemDescription,
             "itemquantity": quantity_available,
             "quantityOwned": item.itemquantity,
-            "itemphoto": item.itemphoto
+            "itemphoto": item.itemphoto,
+            "departmentID": item.departmentID
         })
 
     return jsonify({"items": result})
