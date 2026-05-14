@@ -395,8 +395,9 @@ This page will have different content depending on who logs in, eg: different "u
                                 </div>
 
                                 <div class="ml-auto mr-4">
-                                    /requests/return/{{ request.requestID }}
-                                        <button class="action-btn rounded-lg bg-sky-900 hover:bg-blue-800 px-4 py-2 text-white">
+                                    <form method="POST" action="/requests/return/{{ request.requestID }}">
+                                        <button type="submit"
+                                                class="action-btn rounded-lg bg-sky-900 hover:bg-blue-800 px-4 py-2 text-white">
                                             Return
                                         </button>
                                     </form>
@@ -456,8 +457,9 @@ This page will have different content depending on who logs in, eg: different "u
                             </div>
 
                             <div class="ml-auto mr-4">
-                                /requests/return/{{ request.requestID }}
-                                    <button class="action-btn rounded-lg bg-sky-900 hover:bg-blue-800 px-4 py-2 text-white">
+                                <form method="POST" action="/requests/return/{{ request.requestID }}">
+                                    <button type="submit"
+                                            class="action-btn rounded-lg bg-sky-900 hover:bg-blue-800 px-4 py-2 text-white">
                                         Return
                                     </button>
                                 </form>
