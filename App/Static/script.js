@@ -150,9 +150,21 @@ async function loadInventoryItems() {
     }
 }
 
+function getSelectedDepartmentID() {
+    const select = document.getElementById("departmentID");
+    return select ? select.value : "";
+}
+
 function filterItemDropdown() {
     const query = document.getElementById("itemSearch").value.toLowerCase();
     const dropdown = document.getElementById("itemDropdown");
+    const deptID = getSelectedDepartmentID();
+
+    if (!deptID) {
+        dropdown.innerHTML = "<div style='padding:8px 10px; color:rgba(255,255,255,0.4); font-size:0.85rem;'>Select a department first.</div>";
+        dropdown.style.display = query ? "block" : "none";
+        return;
+    }
 
     if (!query) {
         dropdown.style.display = "none";
@@ -160,7 +172,9 @@ function filterItemDropdown() {
     }
 
     const matches = allInventoryItems.filter(i =>
-        i.itemName.toLowerCase().includes(query) && !pickedItems[i.itemID]
+        i.itemName.toLowerCase().includes(query) &&
+        !pickedItems[i.itemID] &&
+        String(i.departmentID) === String(deptID)
     );
 
     if (matches.length === 0) {
@@ -170,32 +184,43 @@ function filterItemDropdown() {
     }
 
     dropdown.innerHTML = matches.map(i => {
-    const available = Number(i.itemquantity);
-    const isOutOfStock = available <= 0;
-    const safeName = i.itemName.replace(/'/g, "\\'");
+        const available = Number(i.itemquantity);
+        const isOutOfStock = available <= 0;
+        const safeName = i.itemName.replace(/'/g, "\\'");
 
-    return `
-        <div
-            ${isOutOfStock ? "" : `onclick="pickItem(${i.itemID}, '${safeName}', ${available})"`}
-            style="
-                padding:8px 10px;
-                cursor:${isOutOfStock ? "not-allowed" : "pointer"};
-                color:${isOutOfStock ? "rgba(255,255,255,0.35)" : "white"};
-                border-bottom:1px solid rgba(255,255,255,0.07);
-            "
-            ${isOutOfStock ? "" : "onmouseover=\"this.style.background='rgba(56,189,248,0.1)'\""}
-            ${isOutOfStock ? "" : "onmouseout=\"this.style.background='transparent'\""}
-        >
-            ${i.itemName}
-            <span style="opacity:0.5; font-size:0.8rem;">
-                ${isOutOfStock ? "(Out of stock)" : `(${available} available)`}
-            </span>
-        </div>
-    `;
-}).join('');
+        return `
+            <div
+                ${isOutOfStock ? "" : `onclick="pickItem(${i.itemID}, '${safeName}', ${available})"`}
+                style="
+                    padding:8px 10px;
+                    cursor:${isOutOfStock ? "not-allowed" : "pointer"};
+                    color:${isOutOfStock ? "rgba(255,255,255,0.35)" : "white"};
+                    border-bottom:1px solid rgba(255,255,255,0.07);
+                "
+                ${isOutOfStock ? "" : "onmouseover=\"this.style.background='rgba(56,189,248,0.1)'\""}
+                ${isOutOfStock ? "" : "onmouseout=\"this.style.background='transparent'\""}
+            >
+                ${i.itemName}
+                <span style="opacity:0.5; font-size:0.8rem;">
+                    ${isOutOfStock ? "(Out of stock)" : `(${available} available)`}
+                </span>
+            </div>
+        `;
+    }).join('');
 
     dropdown.style.display = "block";
 }
+
+document.addEventListener("DOMContentLoaded", function () {
+    const deptSelect = document.getElementById("departmentID");
+    if (!deptSelect) return;
+
+    deptSelect.addEventListener("change", function () {
+        resetItemPicker();
+        const search = document.getElementById("itemSearch");
+        if (search) search.value = "";
+    });
+});
 
 function pickItem(id, name, available) {
     available = Number(available);
