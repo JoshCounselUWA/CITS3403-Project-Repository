@@ -281,7 +281,14 @@
                 <th onclick="sortInventoryTable(4)">Status <span class="arrow">↕</span></th>
                 <th onclick="sortInventoryTable(5)">Photo <span class="arrow">↕</span></th>
                 <th onclick="sortInventoryTable(6)">Department <span class="arrow">↕</span></th>
+                {% if current_user.accountType == "business_admin"
+                    or current_user.memberships | selectattr("role.value", "equalto", "admin")
+                        | selectattr("status.value", "equalto", "accepted")
+                        | list | length > 0 %}
                 <th class="actions">Actions</th>
+                {% else %}
+                <th class="actions"></th>
+                {% endif %}
             </tr>
         </thead>
 

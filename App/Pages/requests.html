@@ -281,7 +281,14 @@
     <table id="requestsTable">
         <thead>
             <tr>
+                {% if current_user.accountType == "business_admin"
+                    or current_user.memberships | selectattr("role.value", "equalto", "admin")
+                        | selectattr("status.value", "equalto", "accepted")
+                        | list | length > 0 %}
                 <th class="actions">Action</th>
+                {% else %}
+                <th class="actions"></th>
+                {% endif %}
                 <th class="actions">Details</th>
                 <th class="sortable" onclick="sortRequestsTable(2)">Title <span class="arrow">↕</span></th>
                 <th class="sortable" onclick="sortRequestsTable(3)">Justification <span class="arrow">↕</span></th>
@@ -299,7 +306,9 @@
             {% for r in requests %}
             <tr>
                 <td class="actions">
-                    {% if current_user.accountType == "business_admin" or current_user.is_admin_of(r.departmentID) %}
+                    {% if r.status.value.lower() != 'loaned'
+                        and (current_user.accountType == "business_admin"
+                            or current_user.is_admin_of(r.departmentID)) %}
                         <button onclick="openActionModal('{{ r.requestID }}')" class="rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
                             Action
                         </button>
