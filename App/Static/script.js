@@ -667,6 +667,45 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
+function exportInventoryCSV() {
+    const table = document.getElementById("inventoryTable");
+    if (!table) return;
+
+    const headers = ["Item", "Category", "Total Quantity", "Quantity Available", "Status", "Department"];
+    const rows = [];
+
+    // only visible rows
+    const tableRows = table.tBodies[0].rows;
+    for (let i = 0; i < tableRows.length; i++) {
+        const row = tableRows[i];
+        if (row.style.display === "none") continue;
+
+        const cells = row.cells;
+        rows.push([
+            cells[0]?.innerText.trim() || "",
+            cells[1]?.innerText.trim() || "",
+            cells[2]?.innerText.trim() || "",
+            cells[3]?.innerText.trim() || "",
+            cells[4]?.innerText.trim() || "",
+            cells[6]?.innerText.trim() || ""
+        ]);
+    }
+
+    // build CSV
+    const csvContent = [headers, ...rows]
+        .map(row => row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(","))
+        .join("\n");
+
+    // trigger download
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "inventory_export.csv";
+    link.click();
+    URL.revokeObjectURL(url);
+}
+
 // run once on page load
 document.addEventListener("DOMContentLoaded", bindFileInput);
 

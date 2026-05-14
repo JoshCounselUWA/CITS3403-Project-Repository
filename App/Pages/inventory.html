@@ -36,10 +36,6 @@
 
     /* SEARCH BAR */
     .search-bar {
-        position: fixed;
-        top: 90px;
-        left: 520px;
-        z-index: 50;
         width: 280px;
     }
 
@@ -322,6 +318,21 @@
     <div class="search-bar">
         <input type="text" id="searchInput" onkeyup="searchTable()" placeholder="Search items...">
     </div>
+
+    <button onclick="exportInventoryCSV()"
+            style="padding:8px 16px;
+                   background:rgba(255,255,255,0.02);
+                   border:1px solid rgba(255,255,255,0.15);
+                   border-radius:8px;
+                   color:white;
+                   cursor:pointer;
+                   white-space:nowrap;"
+            onmouseover="this.style.borderColor='#38bdf8'"
+            onmouseout="this.style.borderColor='rgba(255,255,255,0.15)'">
+        ↓ Export
+    </button>
+
+</div>
 
 </div>
 
