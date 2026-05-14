@@ -1011,10 +1011,6 @@ def update_account():
             return redirect(request.referrer or url_for('dashboard'))
         current_user.userName = new_username
 
-    new_password = request.form.get('password', '').strip()
-    if new_password:
-        current_user.password_hash = generate_password_hash(new_password)
-
     session.commit()
     flash('Account updated', 'success')
     return redirect(request.referrer or url_for('dashboard'))
