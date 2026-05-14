@@ -531,6 +531,24 @@ function closeDeleteModal() {
     document.getElementById("deleteConfirmModal").style.display = "none";
 }
 
+function openInventoryDeleteModal(url) {
+    document.getElementById("inventoryDeleteLink").href = url;
+    document.getElementById("inventoryDeleteModal").style.display = "flex";
+}
+
+function closeInventoryDeleteModal() {
+    document.getElementById("inventoryDeleteModal").style.display = "none";
+}
+
+function openRequestDeleteModal(url) {
+    document.getElementById("requestDeleteLink").href = url;
+    document.getElementById("requestDeleteModal").style.display = "flex";
+}
+
+function closeRequestDeleteModal() {
+    document.getElementById("requestDeleteModal").style.display = "none";
+}
+
 // run once on page load
 document.addEventListener("DOMContentLoaded", bindFileInput);
 

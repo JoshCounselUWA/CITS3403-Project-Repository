@@ -287,6 +287,9 @@ def delete_inventory(item_id):
     if current_user.accountType != "business_admin" and not current_user.is_admin_of(item.departmentID):
         abort(403)
 
+    # remove item from all requests first
+    session.query(RequestItems).filter_by(itemID=item_id).delete()
+
     session.delete(item)
     session.commit()
 
