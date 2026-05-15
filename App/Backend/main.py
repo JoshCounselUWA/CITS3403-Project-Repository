@@ -20,16 +20,6 @@ login = LoginManager(app)
 login.login_view = 'login'
 login.login_message = None
 
-def save_uploaded_image(file):
-    filename = secure_filename(file.filename)
-    upload_dir = app.config['UPLOAD_FOLDER']
-    os.makedirs(upload_dir, exist_ok=True)
-
-    path = os.path.join(upload_dir, filename)
-    file.save(path)
-
-    return f"/Static/uploads/{filename}"
-
 @app.errorhandler(403)
 def forbidden(e):
     return render_template('403.html'), 403
@@ -272,7 +262,9 @@ def save_uploaded_image(file):
         return None
     timestamp = datetime.now().strftime('%Y%m%d%M')
     filename = f"{timestamp}_{filename}"
-    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    upload_dir = os.path.abspath(app.config['UPLOAD_FOLDER'])
+    os.makedirs(upload_dir, exist_ok=True)
+    filepath = os.path.join(upload_dir, filename)
     file.save(filepath)
     return url_for('static', filename=f'uploads/{filename}')
 
