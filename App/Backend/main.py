@@ -61,6 +61,20 @@ def dashboard():
     items = session.query(Inventory).all()
     requests = session.query(Request).all()
     pending_invites = (session.query(Membership).filter_by(userID=current_user.userID, status=MembershipStatus.pending).all())
+
+    # auto-mark overdue on dashboard load
+    now = datetime.now()
+    changed = False
+    for req in requests:
+        if (req.returnDate
+                and req.returnDate < now
+                and req.status == Status.loaned):
+            req.status = Status.overdue
+            changed = True
+
+    if changed:
+        session.commit()
+
     return render_template("dashboard.html", items=items, requests=requests, pending_invites=pending_invites)
 
 with app.app_context():
