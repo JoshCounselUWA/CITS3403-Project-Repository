@@ -201,7 +201,8 @@ def inventory():
                 Request.status.in_([
                     Status.waiting,
                     Status.approved,
-                    Status.loaned
+                    Status.loaned,
+                    Status.overdue
                 ])
             )
             .all()
@@ -249,7 +250,8 @@ def inventory_json():
                 Request.status.in_([
                     Status.waiting,
                     Status.approved,
-                    Status.loaned
+                    Status.loaned,
+                    Status.overdue
                 ])
             )
             .all()
@@ -471,7 +473,8 @@ def get_request_items(request_id):
                     Request.status.in_([
                         Status.waiting,
                         Status.approved,
-                        Status.loaned
+                        Status.loaned,
+                        Status.overdue
                     ])
                 )
                 .all()
