@@ -310,14 +310,14 @@
 
     <!-- LEFT: ALWAYS DICE -->
     <div class="flex items-center gap-4">
-        <img src="../Static/DICE.png" class="logo h-20">
+        <img alt="DICE Logo" src="../Static/DICE.png" class="logo h-20">
         <h1 class="font-bold">Inventory</h1>
     </div>
 
     <!-- RIGHT: OPTIONAL BRANDING -->
     <div class="flex items-center" style="position: absolute; right: 20px;">
         {% if branding and branding.logoURL %}
-            <img src="{{ branding.logoURL }}" style="height: 40px; object-fit: contain;">
+            <img alt="Branding Logo" src="{{ branding.logoURL }}" style="height: 40px; object-fit: contain;">
         {% endif %}
     </div>
 
@@ -381,8 +381,6 @@
             onmouseout="this.style.borderColor='rgba(255,255,255,0.15)'">
         ↓ Export
     </button>
-
-</div>
 
 </div>
 
