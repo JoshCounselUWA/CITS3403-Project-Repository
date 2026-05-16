@@ -99,6 +99,7 @@
         <div class="section">
             <h3>Invite a User</h3>
             <form class="invite-form" method="POST" action="/departments/{{ dept.departmentID }}/invite">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="text" name="username" placeholder="Username" required>
                 <select name="role">
                     <option value="member">Member</option>
@@ -122,6 +123,7 @@
                             <td>{{ m.user.fName }} {{ m.user.lName }}</td>
                             <td>
                                 <form method="POST" action="/departments/{{ dept.departmentID }}/member/{{ m.id }}/role">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                     <select name="role" onchange="this.form.submit()">
                                         <option value="member" {% if m.role.value == 'member' %}selected{% endif %}>
                                             Member

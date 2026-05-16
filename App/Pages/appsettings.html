@@ -260,7 +260,7 @@
         <span style="color:rgba(255,255,255,0.7); min-width:80px;">
             Branding
         </span>
-
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input name="logoURL" placeholder="Logo URL" value="{{ branding.logoURL if branding and branding.logoURL else '' }}"
                style="flex:1; padding:6px 8px;
                       background:rgba(255,255,255,0.02);
@@ -343,6 +343,7 @@
             <td>
                 {% if u.userID != current_user.userID %}
                     <form method="POST" action="/appsettings/users/{{ u.userID }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <select name="accountType"
                             onchange="this.form.submit()"
                             class="bg-white/5 border border-white/20 px-2 py-1 rounded text-white"
@@ -382,7 +383,7 @@
 <div class="modal-overlay" id="departmentModal">
     <form id="departmentForm" class="modal" method="POST" action="/appsettings/departments/add">
         <h2>Add Department</h2>
-
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input name="departmentName" id="departmentName" placeholder="Department Name" required>
 
         <div class="modal-actions">
@@ -401,6 +402,7 @@
     <form id="updateDepartmentForm" class="modal" method="POST">
         <h2>Update Department</h2>
 
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" name="departmentID" id="updateDepartmentID">
         <input name="departmentName" id="updateDepartmentName" placeholder="Department Name" required>
 
@@ -468,6 +470,7 @@
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
         <span style="font-size:0.75rem; color:rgba(255,255,255,0.4);">Account Settings</span>
         <form method="POST" action="/logout">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit"
                     class="rounded-lg py-1 text-white"
                     style="background:#991b1b; padding:6px 16px; font-size:0.8rem;">
@@ -477,6 +480,7 @@
     </div>
 
     <form method="POST" action="/account/update">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <label>First Name</label>
         <input name="fName" value="{{ current_user.fName }}" placeholder="First Name">
 
@@ -530,6 +534,7 @@
     <div class="modal">
         <h2>Change Password</h2>
         <form id="changePasswordForm" action="/account/password" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <label style="color:rgba(255,255,255,0.5); font-size:0.8rem;">Current Password</label>
             <input name="current_password" type="password" placeholder="Current Password"
                    style="width:100%; padding:6px; margin-bottom:10px;

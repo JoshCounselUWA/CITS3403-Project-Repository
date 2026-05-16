@@ -473,7 +473,7 @@
 <div class="modal-overlay" id="modal">
     <form id="itemForm" class="modal" method="POST" enctype="multipart/form-data">
         <h2 id="modalTitle">Add Item</h2>
-
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" name="itemID" id="itemID">
         <input name="itemName" id="itemName" placeholder="Item Name" required>
         <input name="itemDescription" id="itemDescription" placeholder="Category">
@@ -539,6 +539,7 @@
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
         <span style="font-size:0.75rem; color:rgba(255,255,255,0.4);">Account Settings</span>
         <form method="POST" action="/logout">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit"
                     class="rounded-lg py-1 text-white"
                     style="background:#991b1b; padding:6px 16px; font-size:0.8rem;">
@@ -548,6 +549,7 @@
     </div>
 
     <form method="POST" action="/account/update">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <label>First Name</label>
         <input name="fName" value="{{ current_user.fName }}" placeholder="First Name">
 
@@ -602,6 +604,7 @@
         <h2>Change Password</h2>
         <form id="changePasswordForm" action="/account/password" method="POST">
             <label style="color:rgba(255,255,255,0.5); font-size:0.8rem;">Current Password</label>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input name="current_password" type="password" placeholder="Current Password"
                    style="width:100%; padding:6px; margin-bottom:10px;
                           background:rgba(255,255,255,0.02); color:white;
