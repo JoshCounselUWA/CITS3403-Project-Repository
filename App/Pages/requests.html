@@ -511,7 +511,7 @@
 <div class="modal-overlay" id="modal">
     <form id="requestForm" class="modal" method="POST">
         <h2 id="modalTitle">New Request</h2>
-
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <input type="hidden" name="requestID" id="requestID">
         <input name="requestTitle" id="requestTitle" placeholder="Request Title" required>
         <textarea name="requestJustification" id="requestJustification" placeholder="Justification"></textarea>
@@ -552,7 +552,6 @@
 <div class="modal-overlay" id="actionModal">
     <div class="modal">
         <h2>Request Action</h2>
-
         <div class="modal-actions" style="justify-content:center; gap:12px;">
             <a id="approveLink">
                 <button style="background:#088134; padding-left:16px; padding-right:16px;"
@@ -619,6 +618,7 @@
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
         <span style="font-size:0.75rem; color:rgba(255,255,255,0.4);">Account Settings</span>
         <form method="POST" action="/logout">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit"
                     class="rounded-lg py-1 text-white"
                     style="background:#991b1b; padding:6px 16px; font-size:0.8rem;">
@@ -628,6 +628,7 @@
     </div>
 
     <form method="POST" action="/account/update">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <label>First Name</label>
         <input name="fName" value="{{ current_user.fName }}" placeholder="First Name">
 
@@ -681,6 +682,7 @@
     <div class="modal">
         <h2>Change Password</h2>
         <form id="changePasswordForm" action="/account/password" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <label style="color:rgba(255,255,255,0.5); font-size:0.8rem;">Current Password</label>
             <input name="current_password" type="password" placeholder="Current Password"
                    style="width:100%; padding:6px; margin-bottom:10px;

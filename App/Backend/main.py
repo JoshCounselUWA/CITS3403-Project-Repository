@@ -12,13 +12,20 @@ from flask_login import LoginManager, login_user, logout_user, login_required, c
 from functools import wraps
 from werkzeug.utils import secure_filename
 
+from dotenv import load_dotenv
+load_dotenv()
+from config import Config
+
 app = Flask(__name__, template_folder="../Pages", static_folder="../Static")
-app.config['SECRET_KEY'] = 'need_to_change_this_later_secret_key'
+app.config.from_object(Config)
 app.config['UPLOAD_FOLDER'] = os.path.join( os.path.dirname(__file__), '..', 'Static','uploads')
 CORS(app)
 login = LoginManager(app)
 login.login_view = 'login'
 login.login_message = None
+
+from flask_wtf.csrf import CSRFProtect
+csrf = CSRFProtect(app)
 
 @app.errorhandler(403)
 def forbidden(e):
@@ -98,6 +105,10 @@ with app.app_context():
         session.commit()
   
 @app.route('/', methods=['GET', 'POST'])
+def home():
+    return render_template('home.html')
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
@@ -1038,4 +1049,4 @@ def update_account():
     return redirect(request.referrer or url_for('dashboard'))
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, port=5000)
