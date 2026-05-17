@@ -88,7 +88,7 @@ class FormTests(unittest.TestCase):
         self.assertTrue(form.validate())
 
     #when the username is too long
-    def test_register_form_password_mismatch(self):
+    def test_register_form_password_too_long(self):
         form = RegistrationForm(data={
             "first_name": "it",
             "last_name": "s",
