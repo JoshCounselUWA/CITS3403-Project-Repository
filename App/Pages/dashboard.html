@@ -36,10 +36,11 @@ This page will have different content depending on who logs in, eg: different "u
         .content-container {
             position: absolute;
             top: 140px;
-            left: 300px;
+            left: 20px;
             right: 20px;
             bottom: 20px;
             overflow-y: auto;
+            z-index:10;
         }
 
         .dashboard-section {
@@ -267,32 +268,29 @@ This page will have different content depending on who logs in, eg: different "u
             gap: 8px;
         }
 
-        .user-panel-btn {
-            position: absolute;
-            bottom: 20px;
+        .user-account-btn {
+            position: fixed;
+            bottom: 0;
             left: 0;
-            right: 0;
-            padding: 0 24px;
-        }
-
-        .user-panel-btn button {
-            width: 100%;
-            text-align: left;
-            padding: 10px 12px;
-            background: rgba(255,255,255,0.04);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 8px;
+            width: 256px;
+            z-index: 98;
+            padding: 20px;
+            background: #0f172a;
+            border: none;
+            border-top: 1px solid rgba(255,255,255,0.08);
             color: white;
+            text-align: left;
             display: flex;
             align-items: center;
             gap: 10px;
-            font-size: 0.9rem;
-            transition: background 0.2s;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: width 200ms ease, border-radius 200ms ease, padding 200ms ease;
         }
 
-        .user-panel-btn button:hover {
-            background: rgba(255,255,255,0.08);
-        }
+        .user-account-btn .user-account-icon {
+            font-size: 1.3rem;
+     }
 
         .user-popout {
             position: fixed;
@@ -344,6 +342,33 @@ This page will have different content depending on who logs in, eg: different "u
             margin: 4px 0;
         }
 
+        @media (min-width: 768px) {
+            .content-container {
+                left: 300px;
+            }
+        }
+
+        @media (max-width: 767px) {
+        .user-account-btn {
+            width: 48px;
+            height: 48px;
+            padding: 0;
+            border-radius: 9999px;
+            margin: 20px;
+            margin-bottom: 45px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .user-account-btn .user-account-name {
+            display: none;
+        }
+
+        .user-account-btn .user-account-icon {
+            font-size: 1.25rem;
+        }
+    }        
+
     </style>
 
 </head>
@@ -358,16 +383,20 @@ This page will have different content depending on who logs in, eg: different "u
         </div>
 
         <!-- RIGHT: OPTIONAL BRANDING -->
-        <div class="flex items-center" style="position: absolute; right: 20px;">
+        <div class="flex items-center gap-4" style="position: absolute; right: 20px;">
             {% if branding and branding.logoURL %}
                 <img alt="Branding Logo" src="{{ branding.logoURL }}" style="height: 40px; object-fit: contain;">
             {% endif %}
+            <button id="sidebarToggle" class="md:hidden p-2 rounded bg-slate-900">☰</button>
         </div>
 
     </div>
 
     <!-- Sidebar -->
-    <div class="fixed top-16 bottom-0 left-0 w-64 flex flex-col gap-4 bg-slate-900 p-6 text-white">
+    <div id="sidebar"
+        class="fixed top-16 bottom-0 left-0 w-64 flex flex-col gap-4 bg-slate-900 p-6 text-white
+            transform -translate-x-full transition-transform duration-200 ease-in-out
+            md:translate-x-0 z-60">
         <button onclick="window.location.href='dashboard'" class="w-50 rounded-lg bg-sky-900 py-2 hover:bg-blue-800">Dashboard</button>
         <button onclick="window.location.href='requests'" class="w-50 rounded-lg bg-sky-900 py-2 hover:bg-blue-800">Requests</button>
         <button onclick="window.location.href='inventory'" class="w-50 rounded-lg bg-sky-900 py-2 hover:bg-blue-800">Inventory</button>
@@ -684,20 +713,9 @@ This page will have different content depending on who logs in, eg: different "u
 </div>
 
 <!-- User Account Button (fixed bottom left) -->
-<button onclick="toggleUserPanel()"
-        style="position:fixed; bottom:0; left:0; width:256px; z-index:98;
-               padding:20px 20px;
-               background:#0f172a;
-               border:none;
-               border-top:1px solid rgba(255,255,255,0.08);
-               color:white;
-               text-align:left;
-               display:flex;
-               align-items:center;
-               gap:10px;
-               font-size:1.2rem;
-               cursor:pointer;">
-    👤 {{ current_user.fName }} {{ current_user.lName }}
+<button onclick="toggleUserPanel()" class="user-account-btn">
+    <span class="user-account-icon">👤</span>
+    <span class="user-account-name">{{ current_user.fName }} {{ current_user.lName }}</span>
 </button>
 
 <!-- Change Password Modal -->

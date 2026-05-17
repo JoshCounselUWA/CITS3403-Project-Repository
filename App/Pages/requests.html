@@ -26,18 +26,27 @@
     }
 
     .add-request-btn {
-        position: fixed;
-        top: 90px;
-        right: 20px;
-        z-index: 50;
         padding-left: 28px;
         padding-right: 28px;
+    }
+
+    .button-bar {
+        position: fixed;
+        top: 90px;
+        left: 20px;
+        right: 20px;
+        z-index: 50;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-direction: row;
+        flex-wrap: nowrap;
     }
 
     .table-container {
         position: absolute;
         top: 140px;
-        left: 300px;
+        left: 20px;
         right: 20px;
         bottom: 20px;
         overflow: auto;
@@ -238,7 +247,7 @@
         background: #020617;
         color: white;
     }
-
+    
     .dept-filter {
         padding: 8px 10px;
         background: rgba(255,255,255,0.02);
@@ -260,6 +269,30 @@
     .dept-filter option {
         background: #020617;
         color: white;
+    }
+
+    .user-account-btn {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 256px;
+        z-index: 98;
+        padding: 20px;
+        background: #0f172a;
+        border: none;
+        border-top: 1px solid rgba(255,255,255,0.08);
+        color: white;
+        text-align: left;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 1.2rem;
+        cursor: pointer;
+        transition: width 200ms ease, border-radius 200ms ease, padding 200ms ease;
+    }
+
+    .user-account-btn .user-account-icon {
+        font-size: 1.3rem;
     }
 
     .user-popout {
@@ -311,6 +344,67 @@
         border-top: 1px solid rgba(255,255,255,0.08);
         margin: 4px 0;
     }
+
+    @media (min-width: 768px) {
+        .table-container {
+            left: 300px;
+        }
+        .button-bar {
+            left: 300px;
+            right: auto;
+        }
+        .add-request-btn {
+            margin-left: auto;
+        }
+    }
+
+    @media (max-width: 767px) {
+        .user-account-btn {
+            width: 48px;
+            height: 48px;
+            padding: 0;
+            border-radius: 9999px;
+            margin: 20px;
+            margin-bottom: 45px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .user-account-btn .user-account-name {
+            display: none;
+        }
+
+        .user-account-btn .user-account-icon {
+            font-size: 1.25rem;
+        }
+
+        .table-container {
+            font-size: small;
+        }
+    }
+
+    @media (max-width: 639px) {
+        .table-container {
+            top: 220px;
+            font-size: x-small;
+        }
+        .button-bar {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 8px;
+        }
+        .button-bar .dept-filter,
+        .button-bar .add-request-btn {
+            width: 100%;
+        }
+        .button-bar .dept-filter {
+            order: 1;
+        }
+        .button-bar .add-request-btn {
+            order: 2;
+        }
+
+    }
     
 </style>
 
@@ -328,16 +422,20 @@
     </div>
 
     <!-- RIGHT: OPTIONAL BRANDING -->
-    <div class="flex items-center" style="position: absolute; right: 20px;">
+    <div class="flex items-center gap-4" style="position: absolute; right: 20px;">
         {% if branding and branding.logoURL %}
             <img alt="Branding Logo" src="{{ branding.logoURL }}" style="height: 40px; object-fit: contain;">
         {% endif %}
+        <button id="sidebarToggle" class="md:hidden p-2 rounded bg-slate-900">☰</button>
     </div>
 
 </div>
 
 <!-- Sidebar -->
-<div class="fixed top-16 bottom-0 left-0 w-64 flex flex-col gap-4 bg-slate-900 p-6 text-white">
+<div id="sidebar"
+        class="fixed top-16 bottom-0 left-0 w-64 flex flex-col gap-4 bg-slate-900 p-6 text-white
+            transform -translate-x-full transition-transform duration-200 ease-in-out
+            md:translate-x-0 z-60">
     <button onclick="window.location.href='dashboard'" class="w-50 rounded-lg bg-sky-900 py-2 hover:bg-blue-800">Dashboard</button>
     <button onclick="window.location.href='requests'" class="w-50 rounded-lg bg-sky-900 py-2 hover:bg-blue-800">Requests</button>
     <button onclick="window.location.href='inventory'" class="w-50 rounded-lg bg-sky-900 py-2 hover:bg-blue-800">Inventory</button>
@@ -346,8 +444,8 @@
     {% endif %}
 </div>
 
+<div class="button-bar">
 <!-- Department Filter -->
-<div style="position:fixed; top:90px; left:300px; z-index:50;">
    
     <div style="position:relative; display:flex; align-items:center;">
         <span style="position:absolute; left:10px; color:rgba(255,255,255,0.5); pointer-events:none; font-size:0.9rem;">
@@ -368,11 +466,10 @@
         </select>
     </div>
 
-</div>
-
 <button onclick="openAddModal()" class="add-request-btn rounded-lg bg-sky-900 py-2 hover:bg-blue-800 text-white">
     New Request
 </button>
+</div>
 
 <div class="table-container">
     <table id="requestsTable">
@@ -661,20 +758,9 @@
 </div>
 
 <!-- User Account Button (fixed bottom left) -->
-<button onclick="toggleUserPanel()"
-        style="position:fixed; bottom:0; left:0; width:256px; z-index:98;
-               padding:20px 20px;
-               background:#0f172a;
-               border:none;
-               border-top:1px solid rgba(255,255,255,0.08);
-               color:white;
-               text-align:left;
-               display:flex;
-               align-items:center;
-               gap:10px;
-               font-size:1.2rem;
-               cursor:pointer;">
-    👤 {{ current_user.fName }} {{ current_user.lName }}
+<button onclick="toggleUserPanel()" class="user-account-btn">
+    <span class="user-account-icon">👤</span>
+    <span class="user-account-name">{{ current_user.fName }} {{ current_user.lName }}</span>
 </button>
 
 <!-- Change Password Modal -->
