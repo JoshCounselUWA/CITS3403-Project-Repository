@@ -26,12 +26,8 @@
     }
 
     .add-item-btn {
-        position: fixed;
-        top: 90px;
-        right: 20px;
-        z-index: 50;
-        padding-left: 28px;
-        padding-right: 28px;
+        padding-left: 16px;
+        padding-right: 16px;
     }
 
     /* SEARCH BAR */
@@ -56,11 +52,12 @@
 
     .table-container {
         position: absolute;
-        top: 140px;
-        left: 300px;
+        top: 190px;
+        left: 20px;
         right: 20px;
         bottom: 20px;
         overflow: auto;
+        z-index: 10;
     }
 
     table {
@@ -219,11 +216,13 @@
     .filter-bar {
         position: fixed;
         top: 90px;
-        left: 300px;
+        left: 20px;
         z-index: 50;
         display: flex;
         gap: 10px;
         align-items: center;
+        flex-wrap: wrap;
+        flex-direction: row;
     }
 
     .dept-filter {
@@ -299,6 +298,39 @@
         margin: 4px 0;
     }
 
+    @media (min-width: 768px) {
+        .table-container {
+            left: 300px;
+        }
+        .filter-bar {
+            left: 300px;
+            right: auto;
+        }
+        .add-item-btn {
+            margin-left: auto;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .table-container {
+            top: 240px;
+        }
+        .filter-bar {
+            right: 20px;
+            gap: 8px;
+        }
+        .filter-bar .search-bar,
+        .filter-bar .dept-filter,
+        .filter-bar .export-btn,
+        .filter-bar .add-item-btn {
+            width: 100%;
+        }
+        .filter-bar .search-bar input {
+            width: 100%;
+            box-sizing: border-box;
+        }
+    }
+
 </style>
 
 </head>
@@ -319,12 +351,16 @@
         {% if branding and branding.logoURL %}
             <img alt="Branding Logo" src="{{ branding.logoURL }}" style="height: 40px; object-fit: contain;">
         {% endif %}
+        <button id="sidebarToggle" class="md:hidden p-2 rounded bg-slate-900">☰</button>
     </div>
 
 </div>
 
 <!-- Sidebar -->
-<div class="fixed top-16 bottom-0 left-0 w-64 flex flex-col gap-4 bg-slate-900 p-6 text-white">
+<div id="sidebar"
+        class="fixed top-16 bottom-0 left-0 w-64 flex flex-col gap-4 bg-slate-900 p-6 text-white
+            transform -translate-x-full transition-transform duration-200 ease-in-out
+            md:translate-x-0 z-60">
     <button onclick="window.location.href='dashboard'" class="w-50 rounded-lg bg-sky-900 py-2 hover:bg-blue-800">Dashboard</button>
     <button onclick="window.location.href='requests'" class="w-50 rounded-lg bg-sky-900 py-2 hover:bg-blue-800">Requests</button>
     <button onclick="window.location.href='inventory'" class="w-50 rounded-lg bg-sky-900 py-2 hover:bg-blue-800">Inventory</button>
@@ -344,7 +380,7 @@
 {% endif %}
 
 <!-- FILTER + SEARCH BAR -->
-<div style="position:fixed; top:90px; left:300px; z-index:50; display:flex; gap:10px;">
+<div class="filter-bar">
 
     <div style="position:relative; display:flex; align-items:center;">
         <span style="position:absolute; left:10px; color:rgba(255,255,255,0.5); pointer-events:none; font-size:0.9rem;">

@@ -1,3 +1,15 @@
+/* ── SIDERBAR ────────────────────────────────────── */
+
+const sidebarToggle = document.getElementById('sidebarToggle');
+const sidebar = document.getElementById('sidebar');
+
+if (sidebarToggle && sidebar) {
+  sidebarToggle.addEventListener('click', () => {
+    sidebar.classList.toggle('-translate-x-full');
+    sidebar.classList.toggle('translate-x-0');
+  });
+}
+
 /* ── REQUESTS PAGE ─────────────────────────────────────────── */
 
 let requestsSortState = {};
