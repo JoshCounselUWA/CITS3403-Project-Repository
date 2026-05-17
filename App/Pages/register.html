@@ -150,7 +150,7 @@
                 {{ form.first_name.label }}<br>
                 {{ form.first_name(size=20) }}
                 {% for error in form.first_name.errors %}
-                    <span style="color:red;">[{{ error }}]</span>
+                    <span id="first_name_error" style="color:red;">[{{ error }}]</span>
                 {% endfor %}
             </p>
 
@@ -158,7 +158,7 @@
                 {{ form.last_name.label }}<br>
                 {{ form.last_name(size=20) }}
                 {% for error in form.last_name.errors %}
-                    <span style="color:red;">[{{ error }}]</span>
+                    <span id="last_name_error" style="color:red;">[{{ error }}]</span>
                 {% endfor %}
             </p>
 
@@ -166,7 +166,7 @@
                 {{ form.username.label }}<br>
                 {{ form.username(size=20) }}
                 {% for error in form.username.errors %}
-                    <span style="color:red;">[{{ error }}]</span>
+                    <span id="username_error" style="color:red;">[{{ error }}]</span>
                 {% endfor %}
             </p>
 
@@ -174,7 +174,7 @@
                 {{ form.password.label }}<br>
                 {{ form.password(size=20) }}
                 {% for error in form.password.errors %}
-                    <span style="color:red;">[{{ error }}]</span>
+                    <span id="password_error" style="color:red;">[{{ error }}]</span>
                 {% endfor %}
             </p>
 
@@ -182,7 +182,7 @@
                 {{ form.confirm_password.label }}<br>
                 {{ form.confirm_password(size=20) }}
                 {% for error in form.confirm_password.errors %}
-                    <span style="color:red;">[{{ error }}]</span>
+                    <span id="confirm_password_error" style="color:red;">[{{ error }}]</span>
                 {% endfor %}
             </p>
 
