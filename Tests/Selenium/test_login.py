@@ -9,14 +9,14 @@ def run_flask():
     from App.Backend.main import app
     app.run(port=5000, use_reloader=False)
 
-
-class TestFormsSelenium(unittest.TestCase):
+class TestLoginSelenium(unittest.TestCase):
 
     def setUp(self):
         # Start Flask server
         self.server = multiprocessing.Process(target=run_flask)
         self.server.start()
-        time.sleep(1)  # give server time to start
+        time.sleep(2)  # allow server to start
+
         self.driver = webdriver.Chrome()
 
     def tearDown(self):
@@ -24,30 +24,31 @@ class TestFormsSelenium(unittest.TestCase):
         self.server.terminate()
         self.server.join()
 
-    def test_register_password_match(self):
-        self.driver.get("http://localhost:5000/register")
+    def test_login_success(self):
+        """Test valid login redirects to dashboard"""
+        self.driver.get("http://localhost:5000/login")
 
-        self.driver.find_element(By.ID, "first_name").send_keys("John")
-        self.driver.find_element(By.ID, "last_name").send_keys("Doe")
         self.driver.find_element(By.ID, "username").send_keys("johndoe")
         self.driver.find_element(By.ID, "password").send_keys("secret123")
-        self.driver.find_element(By.ID, "confirm_password").send_keys("secret123")
 
         self.driver.find_element(By.ID, "submit").click()
 
-        self.assertIn("/login", self.driver.current_url)
+        # Adjust expected redirect if needed
+        self.assertIn("/dashboard", self.driver.current_url)
 
+    def test_login_failure(self):
+        """Test invalid login shows error message"""
+        self.driver.get("http://localhost:5000/login")
 
-    def test_register_password_mismatch(self):
-        self.driver.get("http://localhost:5000/register")
-
-        self.driver.find_element(By.ID, "first_name").send_keys("John")
-        self.driver.find_element(By.ID, "last_name").send_keys("Doe")
-        self.driver.find_element(By.ID, "username").send_keys("johndoe")
-        self.driver.find_element(By.ID, "password").send_keys("secret123")
-        self.driver.find_element(By.ID, "confirm_password").send_keys("different")
+        self.driver.find_element(By.ID, "username").send_keys("wronguser")
+        self.driver.find_element(By.ID, "password").send_keys("wrongpass")
 
         self.driver.find_element(By.ID, "submit").click()
-    
-        error = self.driver.find_element(By.ID, "confirm_password_error").text
-        self.assertIn("Passwords must match", error)
+
+        # Flash messages appear in <ul class="flash-messages">
+        error_box = self.driver.find_element(By.CLASS_NAME, "flash-messages")
+        self.assertTrue("Invalid" in error_box.text or "incorrect" in error_box.text)
+
+
+if __name__ == "__main__":
+    unittest.main()

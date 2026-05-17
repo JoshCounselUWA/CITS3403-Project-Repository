@@ -2,10 +2,10 @@ import json
 import os
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session as flask_session
-from forms import LoginForm, RegistrationForm
+from App.Backend.forms import LoginForm, RegistrationForm
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
-from models import session, Inventory, Request, Account, RequestItems, Status, Department, Branding, AccountType, Membership, MembershipRole, MembershipStatus
+from App.Backend.models import session, Inventory, Request, Account, RequestItems, Status, Department, Branding, AccountType, Membership, MembershipRole, MembershipStatus
 from flask_cors import CORS
 from flask import flash, abort
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
@@ -14,7 +14,7 @@ from werkzeug.utils import secure_filename
 
 from dotenv import load_dotenv
 load_dotenv()
-from config import Config
+from App.Backend.config import Config
 
 app = Flask(__name__, template_folder="../Pages", static_folder="../Static")
 app.config.from_object(Config)

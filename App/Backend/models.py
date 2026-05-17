@@ -5,6 +5,7 @@ from sqlalchemy.orm import declarative_base, relationship, sessionmaker
 from datetime import datetime
 import enum
 from flask_login import UserMixin
+import os
 
 Base = declarative_base()
 
@@ -243,7 +244,8 @@ class Branding(Base):
     id = Column(Integer, primary_key=True)
     logoURL = Column(String, nullable=True)
 
-engine = create_engine('sqlite:///DICEapp.db')
+db_path = os.environ.get("TEST_DB_PATH", "DICEapp.db")
+engine = create_engine(f"sqlite:///{db_path}")
 Base.metadata.create_all(engine)
 
 Session = sessionmaker(bind=engine) 
