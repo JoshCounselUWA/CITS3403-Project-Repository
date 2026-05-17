@@ -26,7 +26,7 @@
     }
 
     .add-department-btn {
-        position: fixed;
+        position: absolute;
         top: 180px;
         right: 20px;
         z-index: 50;
@@ -34,10 +34,20 @@
         padding-right: 28px;
     }
 
+    .branding {
+        position: absolute;
+        top: 90px;
+        left: 20px;
+        right: 20px;
+        z-index: 50;
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
     .table-container {
         position: absolute;
         top: 230px;
-        left: 300px;
+        left: 20px;
         right: 20px;
         bottom: 20px;
         overflow: auto;
@@ -260,6 +270,38 @@
         .user-account-btn .user-account-icon {
             font-size: 1.25rem;
         }
+
+        .branding form {
+            position: static;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .branding form span,
+        .branding form input,
+        .branding form .apply-btn {
+            width: 100%;
+        }
+
+        .add-department-btn {
+            top: 240px;
+            justify-content: center;
+        }
+
+        .table-container {
+            top: 290px;
+        }
+    }
+
+    @media (min-width: 768px) {
+        .table-container {
+            left: 300px;
+        }
+        .branding {
+            left: 300px;
+        }
     }
 
 </style>
@@ -282,12 +324,16 @@
         {% if branding and branding.logoURL %}
             <img alt="Branding Logo" src="{{ branding.logoURL }}" style="height: 40px; object-fit: contain;">
         {% endif %}
+        <button id="sidebarToggle" class="md:hidden p-2 rounded bg-slate-900">☰</button>
     </div>
 
 </div>
 
 <!-- Sidebar -->
-<div class="fixed top-16 bottom-0 left-0 w-64 flex flex-col gap-4 bg-slate-900 p-6 text-white">
+<div id="sidebar"
+        class="fixed top-16 bottom-0 left-0 w-64 flex flex-col gap-4 bg-slate-900 p-6 text-white
+            transform -translate-x-full transition-transform duration-200 ease-in-out
+            md:translate-x-0 z-60">
     <button onclick="window.location.href='dashboard'" class="w-50 rounded-lg bg-sky-900 py-2 hover:bg-blue-800">Dashboard</button>
     <button onclick="window.location.href='requests'" class="w-50 rounded-lg bg-sky-900 py-2 hover:bg-blue-800">Requests</button>
     <button onclick="window.location.href='inventory'" class="w-50 rounded-lg bg-sky-900 py-2 hover:bg-blue-800">Inventory</button>
@@ -295,7 +341,7 @@
 </div>
 
 <!-- Branding -->
-<div style="position:absolute; top:90px; left:300px; right:20px; z-index:50;">
+<div class="branding">
     <form method="POST" action="/appsettings/branding"
           style="display:flex; gap:10px; align-items:center;
                  background:#020617; padding:10px 12px;
