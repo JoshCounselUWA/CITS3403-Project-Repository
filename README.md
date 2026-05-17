@@ -39,12 +39,34 @@ The application secret key is loaded from an environment variable. Can use a har
 1. Clone the repository
 2. Install the Python dependencies: use `requirements.txt`
 3. Create a `.env` file in the project root with a secret key
-4. Run the server: `python3 App/Backend/main.py`
-5. Open the application in your browser at port `http://localhost:5000`
-6. A default administrator account is created automatically:
+4. Run the server:
+```
+python3 App/Backend/main.py
+```
+7. Open the application in your browser at port
+```
+http://localhost:5000
+```
+9. A default administrator account is created automatically:
       - **Username:** `testuser`
       - **Password:** `password123`
-  
+
+## Testing
+Install the test dependencies (included in `requirements.txt`):
+```
+pip install pytest selenium
+```
+Run unit tests:
+```
+cd Tests/Unit
+python3 -m pytest test_forms.py test_login.py test_models.py -v
+```
+Run Selenium tests:
+```
+cd Tests/Selenium
+python3 -m pytest test_login.py -v
+```
+
 
 
 
