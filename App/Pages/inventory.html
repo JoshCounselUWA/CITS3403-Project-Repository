@@ -26,8 +26,26 @@
     }
 
     .add-item-btn {
-        padding-left: 16px;
-        padding-right: 16px;
+        position: fixed;
+        top: 140px;
+        right: 20px;
+        z-index: 60;
+        padding-left: 28px;
+        padding-right: 28px;
+    }
+
+    @media (max-width: 767px) {
+        .add-item-btn {
+            top: 140px;  
+            right: 20px;
+        }
+    }
+
+    @media (max-width: 640px) {
+        .add-item-btn {
+            top: 190px;   
+            right: 20px;
+        }
     }
 
     /* SEARCH BAR */
