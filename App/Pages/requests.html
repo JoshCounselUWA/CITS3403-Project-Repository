@@ -25,10 +25,16 @@
         cursor: pointer;
     }
 
+    
     .add-request-btn {
+        position: fixed;
+        top: 90px;
+        right: 20px;
+        z-index: 60;
         padding-left: 28px;
         padding-right: 28px;
     }
+
 
     .button-bar {
         position: fixed;
@@ -353,9 +359,6 @@
             left: 300px;
             right: auto;
         }
-        .add-request-btn {
-            margin-left: auto;
-        }
     }
 
     @media (max-width: 767px) {
@@ -385,7 +388,6 @@
 
     @media (max-width: 639px) {
         .table-container {
-            top: 220px;
             font-size: x-small;
         }
         .button-bar {
@@ -393,16 +395,14 @@
             align-items: stretch;
             gap: 8px;
         }
-        .button-bar .dept-filter,
-        .button-bar .add-request-btn {
-            width: 100%;
-        }
+
         .button-bar .dept-filter {
             order: 1;
         }
         .button-bar .add-request-btn {
             order: 2;
         }
+
 
     }
     
