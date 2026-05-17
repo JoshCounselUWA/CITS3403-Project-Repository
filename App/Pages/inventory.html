@@ -248,6 +248,30 @@
         color: white;
     }
 
+    .user-account-btn {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 256px;
+        z-index: 98;
+        padding: 20px;
+        background: #0f172a;
+        border: none;
+        border-top: 1px solid rgba(255,255,255,0.08);
+        color: white;
+        text-align: left;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 1.2rem;
+        cursor: pointer;
+        transition: width 200ms ease, border-radius 200ms ease, padding 200ms ease;
+    }
+
+    .user-account-btn .user-account-icon {
+        font-size: 1.3rem;
+    }
+
     .user-popout {
         position: fixed;
         bottom: 52px;
@@ -308,6 +332,27 @@
         }
         .add-item-btn {
             margin-left: auto;
+        }
+    }
+
+    @media (max-width: 767px) {
+        .user-account-btn {
+            width: 48px;
+            height: 48px;
+            padding: 0;
+            border-radius: 9999px;
+            margin: 20px;
+            margin-bottom: 45px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .user-account-btn .user-account-name {
+            display: none;
+        }
+
+        .user-account-btn .user-account-icon {
+            font-size: 1.25rem;
         }
     }
 
@@ -616,20 +661,9 @@
 </div>
 
 <!-- User Account Button (fixed bottom left) -->
-<button onclick="toggleUserPanel()"
-        style="position:fixed; bottom:0; left:0; width:256px; z-index:98;
-               padding:20px 20px;
-               background:#0f172a;
-               border:none;
-               border-top:1px solid rgba(255,255,255,0.08);
-               color:white;
-               text-align:left;
-               display:flex;
-               align-items:center;
-               gap:10px;
-               font-size:1.2rem;
-               cursor:pointer;">
-    👤 {{ current_user.fName }} {{ current_user.lName }}
+<button onclick="toggleUserPanel()" class="user-account-btn">
+    <span class="user-account-icon">👤</span>
+    <span class="user-account-name">{{ current_user.fName }} {{ current_user.lName }}</span>
 </button>
 
 <!-- Change Password Modal -->
