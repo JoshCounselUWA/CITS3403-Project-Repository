@@ -26,4 +26,26 @@ Users connect to departments through an invitation system. A department admin or
 
 After registering an account and logging in, a user is redirected to their dashboard, where loans, requests, and any pending department invitations are visible. Business admins access the App Settings page to manage departments and company branding. Department admins use each department's management page to invite members, change member roles,and remove members. Only Business admins can access app settings.
 
+**Libraries use:**
+- **Tailwind CSS** — styling
+- **Flask** — web framework and routing
+- **Flask-Login** — session management and authentication
+- **Flask-WTF** — form handling and CSRF protection
+- **SQLAlchemy** — ORM and database layer (SQLite)
+
+The application secret key is loaded from an environment variable. Can use a hardcoded key for demo.
+
+## Launching
+1. Clone the repository
+2. Install the Python dependencies: use `requirements.txt`
+3. Create a `.env` file in the project root with a secret key
+4. Run the server: `python3 App/Backend/main.py`
+5. Open the application in your browser at port `http://localhost:5000`
+6. A default administrator account is created automatically:
+      - **Username:** `testuser`
+      - **Password:** `password123`
+  
+
+
+
 
